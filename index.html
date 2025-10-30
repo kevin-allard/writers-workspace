@@ -184,9 +184,15 @@
             flex-direction: column;
             overflow: hidden;
             color: var(--text-dark);
+            transition: flex-basis 0.4s ease;
         }
         .workspace-pane.hidden {
             display: none;
+        }
+        /* New class for focus mode */
+        .workspace-pane.is-focused {
+            flex-grow: 1;
+            flex-basis: 100% !important;
         }
         .pane-header {
             padding: 16px 24px;
@@ -249,6 +255,8 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            width: 100%;
+            transition: width 0.4s ease;
         }
         .tox-tinymce {
             border-radius: 0 0 0 16px !important;
@@ -262,7 +270,29 @@
             display: flex;
             flex-direction: column;
             background-color: #f8fafc;
-             border-radius: 0 0 16px 0;
+            border-radius: 0 0 16px 0;
+            transition: width 0.4s ease;
+        }
+        /* New class to hide the sidebar */
+        .assistant-sidebar.hidden {
+            display: none;
+        }
+        .toggle-assistant-btn {
+            margin-left: auto;
+            background-color: #f1f5f9;
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-assistant-btn svg {
+            width: 16px; height: 16px;
         }
         .assistant-tabs {
             display: flex;
@@ -489,7 +519,6 @@
 
             let activePanes = [null, null];
 
-            // UPDATED PANE CONTENT FOR DRIVING TASK & TINYMCE
             const paneContent = {
                 library: { title: 'Library: The Medicine Bag', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2M19,20H5V18H19V20M19,17H5V4H19V17Z" /></svg>', content: `<div class="pane-content"><div class="library-text-container"><h1>The Medicine Bag</h1><h2>by Virginia Driving Hawk Sneve</h2><p>My kid sister Cheryl and I always bragged about our Sioux grandpa, Joe Iron Shell...</p><p><mark>We never showed our friends Grandpa’s picture.</mark> Not that we were ashamed of him, but because we knew that the glamorous tales we told didn’t go with the real thing...</p></div></div><div class="library-footer"><button id="open-bookshelf-btn">Choose Another Text...</button></div>` },
                 'vocab-journal': { title: 'Vocabulary Journal', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" /></svg>', content: `<div class="placeholder-content">This area would display a list of words the student has saved from the Library,<br>along with their definitions and personal notes.</div>` },
@@ -502,7 +531,7 @@
                                 <div class="editor-area">
                                     <textarea id="driving-task-editor"><h1>Literary Analysis: The Weight of Heritage</h1><p>In Virginia Driving Hawk Sneve’s “The Medicine Bag,” the narrator, Martin, embarks on a reluctant journey from embarrassment to pride...</p></textarea>
                                 </div>
-                                <aside class="assistant-sidebar">
+                                <aside class="assistant-sidebar hidden">
                                     <nav class="assistant-tabs">
                                         <button class="assistant-tab-btn active" data-tab="support">Support</button>
                                         <button class="assistant-tab-btn" data-tab="review">Review</button>
@@ -558,14 +587,43 @@
                     return;
                 }
                 const data = paneContent[paneId];
+                
+                let headerContent = `<div class="pane-header">${data.icon}<span>${data.title}</span>`;
+                if (paneId === 'driving-task') {
+                    headerContent += `<button class="toggle-assistant-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,18.54L19.37,12.8L21,14.07L12,21.07L3,14.07L4.62,12.81L12,18.54M12,16L3,9L4.63,7.73L12,13.1L19.37,7.73L21,9L12,16M12,3.5L19.37,-1.27L21,0L12,7L3,0L4.63,-1.27L12,3.5Z"/></svg><span>Assistant</span></button>`;
+                }
+                headerContent += `</div>`;
+                
                 pane.classList.remove('hidden');
-                pane.innerHTML = `<div class="pane-header">${data.icon}<span>${data.title}</span></div>${data.content}`;
+                pane.innerHTML = headerContent + data.content;
 
                 if (paneId === 'notebook') {
                     setTimeout(() => initEditor('notebook-editor'), 0);
                 } else if (paneId === 'driving-task') {
                     setTimeout(() => initEditor('driving-task-editor'), 0);
-                    // Add event listeners for the new assistant sidebar
+                    
+                    const assistantBtn = pane.querySelector('.toggle-assistant-btn');
+                    const assistantSidebar = pane.querySelector('.assistant-sidebar');
+                    const drivingTaskPane = pane;
+                    const otherPane = (paneIndex === 0) ? panes[1] : panes[0];
+
+                    if (assistantBtn) {
+                        assistantBtn.addEventListener('click', () => {
+                            const isHidden = assistantSidebar.classList.contains('hidden');
+                            if(isHidden) { // If opening the sidebar, go into focus mode
+                                otherPane.classList.add('hidden');
+                                drivingTaskPane.classList.add('is-focused');
+                                assistantSidebar.classList.remove('hidden');
+                                activePanes = ['driving-task', null].sort(); // Keep driving task active
+                                if (paneIndex === 1) activePanes.reverse(); // Ensure it stays in its pane
+                            } else { // If closing, just hide the sidebar
+                                assistantSidebar.classList.add('hidden');
+                            }
+                            // Refresh UI for top tabs
+                            updateUI();
+                        });
+                    }
+                    
                     const assistantTabs = pane.querySelector('.assistant-tabs');
                     if (assistantTabs) {
                         assistantTabs.addEventListener('click', (e) => {
@@ -597,6 +655,9 @@
             
             tabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
+                    // When a main tab is clicked, reset any focus mode
+                    panes.forEach(p => p.classList.remove('is-focused'));
+
                     const clickedPaneId = tab.dataset.pane;
                     if (clickedPaneId === 'library') { openLibraryModal(); return; }
                     const activeIndex = activePanes.indexOf(clickedPaneId);
@@ -626,6 +687,7 @@
                 if (book) {
                     const title = book.dataset.title;
                     if (title === 'The Medicine Bag') {
+                        panes.forEach(p => p.classList.remove('is-focused'));
                         const emptySlot = activePanes.indexOf(null);
                         if(emptySlot !== -1) { activePanes[emptySlot] = 'library'; } 
                         else { activePanes[0] = 'library'; }
@@ -645,7 +707,6 @@
                 bookshelf.innerHTML = books.map(book => `<div class="book" data-title="${book.title}"><div class="book-cover"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M18,20H6V4H18V20M12,6A4,4 0 0,1 16,10C16,11.39 15.19,12.57 14,12.9V13A1,1 0 0,1 13,14H11A1,1 0 0,1 10,13V12.9C8.81,12.57 8,11.39 8,10A4,4 0 0,1 12,6M12,8A2,2 0 0,0 10,10A2,2 0 0,0 12,12A2,2 0 0,0 14,10A2,2 0 0,0 12,8Z" /></svg></div><div class="book-title">${book.title}</div></div>`).join('');
             }
             
-            // Initial state: Show the Library and the new Driving Task with its assistant
             activePanes = ['library', 'driving-task'];
             updateUI();
             renderBookshelf();
