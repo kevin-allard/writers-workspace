@@ -553,7 +553,7 @@
                                             <h4>AI Feedback</h4>
                                             <button class="review-btn"><img src="images/ethiqly-logo.png" alt="Ethiqly Logo"> Get AI Feedback</button>
                                             <h4>Peer Review</h4>
-                                            <button class="review-btn"><img src="images/peerceptiv-logo.png" alt="Peerceptiv Logo"> Submit for Peer Review</button>
+                                            <button class="review-btn"><img src="images/peerceptiv-logo.jpeg" alt="Peerceptiv Logo"> Submit for Peer Review</button>
                                         </div>
                                         <div id="feedback-panel" class="assistant-panel">
                                             <h4>Self-Assessment</h4>
@@ -607,30 +607,26 @@
                     setTimeout(() => initEditor('driving-task-editor'), 0);
                     
                     const assistantBtn = pane.querySelector('.toggle-assistant-btn');
-                    const assistantSidebar = pane.querySelector('.assistant-sidebar');
-                    const drivingTaskPane = pane;
-                    const otherPaneIndex = paneIndex === 0 ? 1 : 0;
-                    const otherPane = panes[otherPaneIndex];
-
                     if (assistantBtn) {
                         assistantBtn.addEventListener('click', () => {
+                            const assistantSidebar = pane.querySelector('.assistant-sidebar');
+                            const drivingTaskPane = pane;
+                            const otherPaneIndex = paneIndex === 0 ? 1 : 0;
+                            const otherPane = panes[otherPaneIndex];
+
                             const isOpening = assistantSidebar.classList.contains('hidden');
 
                             if (isOpening) {
                                 // Enter Focus Mode
                                 if (!otherPane.classList.contains('hidden')) {
                                     otherPane.classList.add('hidden');
-                                    // Update activePanes array to reflect that only one pane is visible
                                     activePanes[otherPaneIndex] = null;
-                                    // Update top tabs to show only driving task is active
                                     updateTopTabs();
                                 }
                                 drivingTaskPane.classList.add('is-focused');
-                                assistantSidebar.classList.remove('hidden');
-                            } else {
-                                // Just hide sidebar, stay in focus mode
-                                assistantSidebar.classList.add('hidden');
                             }
+                            // Toggle sidebar visibility
+                            assistantSidebar.classList.toggle('hidden');
                         });
                     }
                     
@@ -669,6 +665,12 @@
             tabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     panes.forEach(p => p.classList.remove('is-focused'));
+                    
+                    // If a sidebar was open, hide it when changing main tabs
+                    const openSidebar = document.querySelector('.assistant-sidebar:not(.hidden)');
+                    if (openSidebar) {
+                        openSidebar.classList.add('hidden');
+                    }
 
                     const clickedPaneId = tab.dataset.pane;
                     if (clickedPaneId === 'library') { openLibraryModal(); return; }
