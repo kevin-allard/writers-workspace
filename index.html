@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- TINYMCE SCRIPT -->
     <script src="https://cdn.tiny.cloud/1/tth7kpsyc53fbzgd6zz6kz2huhefefwxbts007tf2zx7ab4t/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         :root {
@@ -15,10 +14,12 @@
             --bg-nav: #111827;
             --panel-bg: #ffffff;
             --border-color: #334155;
+            --border-light: #e2e8f0;
             --primary-color: #3f51b5;
             --text-light: #f8fafc;
             --text-dark: #1e293b;
             --text-secondary: #94a3b8;
+            --text-secondary-dark: #64748b;
             --accent-pink: #ec4899;
             --highlight-color: #fff59d;
         }
@@ -189,7 +190,7 @@
         }
         .pane-header {
             padding: 16px 24px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-light);
             font-weight: 500;
             font-size: 18px;
             display: flex;
@@ -209,19 +210,6 @@
             font-size: 16px;
             line-height: 1.6;
         }
-        /* TinyMCE content area needs to fill the space */
-        .pane-content.editor-pane {
-            padding: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .tox-tinymce {
-            border-radius: 0 0 16px 16px !important;
-            border-width: 0 !important;
-            flex-grow: 1;
-        }
-
         .placeholder-content {
             display: flex;
             align-items: center;
@@ -232,10 +220,10 @@
         }
         
         .library-text-container h1 { font-size: 28px; margin-top: 0; margin-bottom: 8px; color: var(--text-dark); }
-        .library-text-container h2 { font-size: 18px; font-weight: 400; color: var(--text-secondary); margin-top: 0; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
+        .library-text-container h2 { font-size: 18px; font-weight: 400; color: var(--text-secondary); margin-top: 0; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light); }
         .library-text-container p { margin-bottom: 1.5em; color: var(--text-dark); }
         .library-text-container mark { background-color: var(--highlight-color); padding: 2px 0; }
-        .library-footer { padding: 16px 24px; border-top: 1px solid #e2e8f0; }
+        .library-footer { padding: 16px 24px; border-top: 1px solid var(--border-light); }
         .library-footer button {
             width: 100%;
             background-color: var(--primary-color);
@@ -247,6 +235,106 @@
             font-size: 14px;
             cursor: pointer;
             text-transform: none;
+        }
+
+        /* --- DRIVING TASK PANE & ASSISTANT SIDEBAR --- */
+        .driving-task-wrapper {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .editor-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .tox-tinymce {
+            border-radius: 0 0 0 16px !important;
+            border-width: 0 !important;
+            flex-grow: 1;
+        }
+        .assistant-sidebar {
+            flex-shrink: 0;
+            width: 380px;
+            border-left: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+             border-radius: 0 0 16px 0;
+        }
+        .assistant-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+        .assistant-tab-btn {
+            flex: 1;
+            padding: 12px 8px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-secondary-dark);
+            transition: all 0.2s ease;
+        }
+        .assistant-tab-btn:hover {
+            background-color: #f1f5f9;
+        }
+        .assistant-tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .assistant-panels {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .assistant-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .assistant-panel.active {
+            display: block;
+        }
+        .assistant-panel h4 {
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 8px;
+        }
+        .assistant-panel img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .review-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            background-color: #fff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: left;
+        }
+        .review-btn img {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 0;
+            box-shadow: none;
         }
 
         /* --- Modal Styles --- */
@@ -275,7 +363,7 @@
         }
         .modal-header {
             padding: 16px 24px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-light);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -307,7 +395,7 @@
         .book-cover {
             height: 160px;
             background-color: var(--bg-light);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-light);
             border-radius: 4px;
             margin-bottom: 8px;
             display: flex;
@@ -401,26 +489,60 @@
 
             let activePanes = [null, null];
 
-            // UPDATED PANE CONTENT FOR TINYMCE
+            // UPDATED PANE CONTENT FOR DRIVING TASK & TINYMCE
             const paneContent = {
-                library: { title: 'Library: The Medicine Bag', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2M19,20H5V18H19V20M19,17H5V4H19V17Z" /></svg>', content: `<div class="pane-content"><div class="library-text-container"><h1>The Medicine Bag</h1><h2>by Virginia Driving Hawk Sneve</h2><p>My kid sister Cheryl and I always bragged about our Sioux grandpa, Joe Iron Shell. Our friends, who had always lived in the city and knew about Indians only from movies and TV, were impressed by our stories. Maybe we exaggerated and made Grandpa and the reservation sound glamorous, but when we’d return home to Iowa after our yearly summer visit to Grandpa, we always had some exciting tale to tell.</p><p><mark>We never showed our friends Grandpa’s picture.</mark> Not that we were ashamed of him, but because we knew that the glamorous tales we told didn’t go with the real thing. Our friends would have laughed at the picture because Grandpa wasn’t tall and stately like TV Indians. His hair wasn’t in braids but hung in stringy gray strands on his neck, and he was old. He was our great-grandfather, and he didn’t live in a tepee but all by himself in a part log, part tar-paper shack on the Rosebud Reservation in South Dakota. So when Grandpa came to visit us, <mark>I was so ashamed and embarrassed I could’ve died.</mark></p></div></div><div class="library-footer"><button id="open-bookshelf-btn">Choose Another Text...</button></div>` },
+                library: { title: 'Library: The Medicine Bag', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2M19,20H5V18H19V20M19,17H5V4H19V17Z" /></svg>', content: `<div class="pane-content"><div class="library-text-container"><h1>The Medicine Bag</h1><h2>by Virginia Driving Hawk Sneve</h2><p>My kid sister Cheryl and I always bragged about our Sioux grandpa, Joe Iron Shell...</p><p><mark>We never showed our friends Grandpa’s picture.</mark> Not that we were ashamed of him, but because we knew that the glamorous tales we told didn’t go with the real thing...</p></div></div><div class="library-footer"><button id="open-bookshelf-btn">Choose Another Text...</button></div>` },
                 'vocab-journal': { title: 'Vocabulary Journal', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" /></svg>', content: `<div class="placeholder-content">This area would display a list of words the student has saved from the Library,<br>along with their definitions and personal notes.</div>` },
                 artifacts: { title: 'Artifacts', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20.54,5.23L19.15,3.55C18.88,3.21 18.47,3 18,3H6C5.47,3 5.06,3.21 4.78,3.55L3.39,5.23C3.13,5.53 3,5.96 3,6.4V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6.4C21,5.96 20.87,5.53 20.61,5.23M19,19H5V7H19V19M11,10H13V12H11V10M11,13H13V15H11V13M15,10H17V12H15V10M15,13H17V15H15V13M7,10H9V15H7V10Z" /></svg>', content: `<div class="placeholder-content">This area would show a collection of the student's completed graphic organizers<br>and other structured artifacts.</div>` },
-                notebook: { title: "Writer's Notebook", icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,2H7A2,2 0 0,0 5,4V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V4A2,2 0 0,0 17,2M17,20H7V4H17V20M12,18A1,1 0 0,1 11,17V11L8.5,13.5L7.08,12.08L12,7.16L16.92,12.08L15.5,13.5L13,11V17A1,1 0 0,1 12,18Z"/></svg>', content: `<div class="pane-content editor-pane"><textarea id="notebook-editor">This is the Writer's Notebook. It's a place for brainstorming, free writing, and keeping notes.</textarea></div>` },
-                'driving-task': { title: 'Driving Task: Literary Analysis', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13V3.5M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>', content: `<div class="pane-content editor-pane"><textarea id="driving-task-editor"><h1>Literary Analysis: The Weight of Heritage</h1><p>In Virginia Driving Hawk Sneve’s “The Medicine Bag,” the narrator, Martin, embarks on a reluctant journey from embarrassment to pride. His initial shame surrounding his grandfather is not born of malice, but of a youthful disconnect from his cultural heritage. This is evident when he admits, “I was so ashamed and embarrassed I could’ve died.” This powerful statement reveals the internal conflict between the glamorous stories he told his friends and the reality of his grandfather's appearance.</p><p>However, as the story progresses, Martin's perspective begins to shift. The turning point is not a single event, but a gradual understanding of the symbolism and history his grandfather carries...</p></textarea></div>` }
+                notebook: { title: "Writer's Notebook", icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,2H7A2,2 0 0,0 5,4V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V4A2,2 0 0,0 17,2M17,20H7V4H17V20M12,18A1,1 0 0,1 11,17V11L8.5,13.5L7.08,12.08L12,7.16L16.92,12.08L15.5,13.5L13,11V17A1,1 0 0,1 12,18Z"/></svg>', content: `<div class="driving-task-wrapper"><div class="editor-area"><textarea id="notebook-editor">This is the Writer's Notebook. It's a place for brainstorming, free writing, and keeping notes.</textarea></div></div>` },
+                'driving-task': { 
+                    title: 'Driving Task: Literary Analysis', 
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13V3.5M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>', 
+                    content: `<div class="driving-task-wrapper">
+                                <div class="editor-area">
+                                    <textarea id="driving-task-editor"><h1>Literary Analysis: The Weight of Heritage</h1><p>In Virginia Driving Hawk Sneve’s “The Medicine Bag,” the narrator, Martin, embarks on a reluctant journey from embarrassment to pride...</p></textarea>
+                                </div>
+                                <aside class="assistant-sidebar">
+                                    <nav class="assistant-tabs">
+                                        <button class="assistant-tab-btn active" data-tab="support">Support</button>
+                                        <button class="assistant-tab-btn" data-tab="review">Review</button>
+                                        <button class="assistant-tab-btn" data-tab="feedback">Feedback</button>
+                                    </nav>
+                                    <div class="assistant-panels">
+                                        <div id="support-panel" class="assistant-panel active">
+                                            <h4>Rubric</h4>
+                                            <img src="images/rubric-checkbox.png" alt="Assignment Rubric">
+                                            <h4>Get Help</h4>
+                                            <img src="images/sentence-stem-guide.png" alt="Sentence Stem Guide">
+                                            <img src="images/im-struggling-tool.png" alt="I'm struggling tool">
+                                        </div>
+                                        <div id="review-panel" class="assistant-panel">
+                                            <h4>AI Feedback</h4>
+                                            <button class="review-btn"><img src="images/ethiqly-logo.png" alt="Ethiqly Logo"> Get AI Feedback</button>
+                                            <h4>Peer Review</h4>
+                                            <button class="review-btn"><img src="images/peerceptiv-logo.png" alt="Peerceptiv Logo"> Submit for Peer Review</button>
+                                        </div>
+                                        <div id="feedback-panel" class="assistant-panel">
+                                            <h4>Self-Assessment</h4>
+                                            <p><em>(Student's self-assessment would appear here after submission.)</em></p>
+                                            <h4>Peer Feedback</h4>
+                                            <p><em>(Aggregated peer feedback from Peerceptiv would appear here.)</em></p>
+                                            <h4>Teacher Score & Feedback</h4>
+                                            <img src="images/rubric-slider.png" alt="Teacher's final score on a slider rubric">
+                                        </div>
+                                    </div>
+                                </aside>
+                            </div>` 
+                }
             };
 
-            // TINYMCE INITIALIZATION LOGIC
-            function initEditor(selector, height) {
-                // First, check if an editor instance already exists and remove it.
-                // This prevents errors when reopening a pane.
+            function initEditor(selector) {
                 if (tinymce.get(selector)) {
                     tinymce.remove(`#${selector}`);
                 }
-                
                 tinymce.init({
                     selector: `#${selector}`,
-                    height: height,
+                    height: '100%',
                     menubar: false,
                     plugins: 'lists link image table code help wordcount',
                     toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code help',
@@ -439,12 +561,23 @@
                 pane.classList.remove('hidden');
                 pane.innerHTML = `<div class="pane-header">${data.icon}<span>${data.title}</span></div>${data.content}`;
 
-                // After rendering the pane, check if we need to initialize an editor
                 if (paneId === 'notebook') {
-                    // Use a timeout to ensure the DOM is fully ready
-                    setTimeout(() => initEditor('notebook-editor', '100%'), 0);
+                    setTimeout(() => initEditor('notebook-editor'), 0);
                 } else if (paneId === 'driving-task') {
-                    setTimeout(() => initEditor('driving-task-editor', '100%'), 0);
+                    setTimeout(() => initEditor('driving-task-editor'), 0);
+                    // Add event listeners for the new assistant sidebar
+                    const assistantTabs = pane.querySelector('.assistant-tabs');
+                    if (assistantTabs) {
+                        assistantTabs.addEventListener('click', (e) => {
+                            if (e.target.matches('.assistant-tab-btn')) {
+                                const tab = e.target.dataset.tab;
+                                pane.querySelectorAll('.assistant-tab-btn').forEach(btn => btn.classList.remove('active'));
+                                pane.querySelectorAll('.assistant-panel').forEach(panel => panel.classList.remove('active'));
+                                e.target.classList.add('active');
+                                pane.querySelector(`#${tab}-panel`).classList.add('active');
+                            }
+                        });
+                    }
                 }
             }
 
@@ -465,25 +598,15 @@
             tabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     const clickedPaneId = tab.dataset.pane;
-                    
-                    if (clickedPaneId === 'library') {
-                        openLibraryModal();
-                        return;
-                    }
-
+                    if (clickedPaneId === 'library') { openLibraryModal(); return; }
                     const activeIndex = activePanes.indexOf(clickedPaneId);
-
                     if (activeIndex > -1) {
                         activePanes[activeIndex] = null;
                     } else {
                         const emptySlotIndex = activePanes.indexOf(null);
-                        if (emptySlotIndex > -1) {
-                            activePanes[emptySlotIndex] = clickedPaneId;
-                        } else {
-                            activePanes[0] = clickedPaneId;
-                        }
+                        if (emptySlotIndex > -1) { activePanes[emptySlotIndex] = clickedPaneId; } 
+                        else { activePanes[0] = clickedPaneId; }
                     }
-                    
                     const tabOrder = Array.from(tabs).map(t => t.dataset.pane);
                     activePanes.sort((a, b) => { if (a === null) return 1; if (b === null) return -1; return tabOrder.indexOf(a) - tabOrder.indexOf(b); });
                     updateUI();
@@ -491,29 +614,21 @@
             });
 
             workspaceContainer.addEventListener('click', (e) => {
-                if(e.target.closest('#open-bookshelf-btn')) {
-                    openLibraryModal();
-                }
+                if(e.target.closest('#open-bookshelf-btn')) { openLibraryModal(); }
             });
 
             function openLibraryModal() { libraryModal.style.display = 'flex'; }
             function closeLibraryModal() { libraryModal.style.display = 'none'; }
             libraryModal.querySelector('.modal-close-btn').addEventListener('click', closeLibraryModal);
             libraryModal.addEventListener('click', (e) => {
-                if (e.target === libraryModal) {
-                    closeLibraryModal();
-                }
+                if (e.target === libraryModal) { closeLibraryModal(); }
                 const book = e.target.closest('.book');
                 if (book) {
                     const title = book.dataset.title;
                     if (title === 'The Medicine Bag') {
-                        // This logic is simplified for the demo: it always opens library in the first available pane.
                         const emptySlot = activePanes.indexOf(null);
-                        if(emptySlot !== -1) {
-                             activePanes[emptySlot] = 'library';
-                        } else {
-                             activePanes[0] = 'library';
-                        }
+                        if(emptySlot !== -1) { activePanes[emptySlot] = 'library'; } 
+                        else { activePanes[0] = 'library'; }
                         const tabOrder = Array.from(tabs).map(t => t.dataset.pane);
                         activePanes.sort((a, b) => { if (a === null) return 1; if (b === null) return -1; return tabOrder.indexOf(a) - tabOrder.indexOf(b); });
                         closeLibraryModal();
@@ -526,24 +641,11 @@
 
             function renderBookshelf() {
                 const bookshelf = libraryModal.querySelector('.bookshelf');
-                const books = [
-                    { title: "The Medicine Bag" },
-                    { title: "The Tell-Tale Heart" },
-                    { title: "The Raven" },
-                    { title: "A Sound of Thunder" },
-                    { title: "The Veldt" },
-                ];
-                bookshelf.innerHTML = books.map(book => `
-                    <div class="book" data-title="${book.title}">
-                        <div class="book-cover">
-                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M18,20H6V4H18V20M12,6A4,4 0 0,1 16,10C16,11.39 15.19,12.57 14,12.9V13A1,1 0 0,1 13,14H11A1,1 0 0,1 10,13V12.9C8.81,12.57 8,11.39 8,10A4,4 0 0,1 12,6M12,8A2,2 0 0,0 10,10A2,2 0 0,0 12,12A2,2 0 0,0 14,10A2,2 0 0,0 12,8Z" /></svg>
-                        </div>
-                        <div class="book-title">${book.title}</div>
-                    </div>
-                `).join('');
+                const books = [{ title: "The Medicine Bag" }, { title: "The Tell-Tale Heart" }, { title: "The Raven" }, { title: "A Sound of Thunder" }, { title: "The Veldt" }];
+                bookshelf.innerHTML = books.map(book => `<div class="book" data-title="${book.title}"><div class="book-cover"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M18,20H6V4H18V20M12,6A4,4 0 0,1 16,10C16,11.39 15.19,12.57 14,12.9V13A1,1 0 0,1 13,14H11A1,1 0 0,1 10,13V12.9C8.81,12.57 8,11.39 8,10A4,4 0 0,1 12,6M12,8A2,2 0 0,0 10,10A2,2 0 0,0 12,12A2,2 0 0,0 14,10A2,2 0 0,0 12,8Z" /></svg></div><div class="book-title">${book.title}</div></div>`).join('');
             }
             
-            // Initial state
+            // Initial state: Show the Library and the new Driving Task with its assistant
             activePanes = ['library', 'driving-task'];
             updateUI();
             renderBookshelf();
