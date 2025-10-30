@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- TINYMCE SCRIPT -->
+    <script src="https://cdn.tiny.cloud/1/tth7kpsyc53fbzgd6zz6kz2huhefefwxbts007tf2zx7ab4t/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         :root {
             --bg-dark: #1e293b;
@@ -207,6 +209,19 @@
             font-size: 16px;
             line-height: 1.6;
         }
+        /* TinyMCE content area needs to fill the space */
+        .pane-content.editor-pane {
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .tox-tinymce {
+            border-radius: 0 0 16px 16px !important;
+            border-width: 0 !important;
+            flex-grow: 1;
+        }
+
         .placeholder-content {
             display: flex;
             align-items: center;
@@ -233,10 +248,6 @@
             cursor: pointer;
             text-transform: none;
         }
-
-        .gdoc-sim { max-width: 800px; margin: 0 auto; color: var(--text-dark); }
-        .gdoc-sim h1 { font-size: 26px; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 24px; }
-        .gdoc-sim p { margin-bottom: 1.5em; }
 
         /* --- Modal Styles --- */
         .modal-overlay {
@@ -318,7 +329,6 @@
             font-size: 13px;
             font-weight: 500;
         }
-
     </style>
 </head>
 <body>
@@ -389,15 +399,34 @@
             const libraryModal = document.getElementById('library-modal');
             const workspaceContainer = document.getElementById('workspace-container');
 
-            let activePanes = [null, null]; // [leftPaneId, rightPaneId]
+            let activePanes = [null, null];
 
+            // UPDATED PANE CONTENT FOR TINYMCE
             const paneContent = {
                 library: { title: 'Library: The Medicine Bag', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2M19,20H5V18H19V20M19,17H5V4H19V17Z" /></svg>', content: `<div class="pane-content"><div class="library-text-container"><h1>The Medicine Bag</h1><h2>by Virginia Driving Hawk Sneve</h2><p>My kid sister Cheryl and I always bragged about our Sioux grandpa, Joe Iron Shell. Our friends, who had always lived in the city and knew about Indians only from movies and TV, were impressed by our stories. Maybe we exaggerated and made Grandpa and the reservation sound glamorous, but when we’d return home to Iowa after our yearly summer visit to Grandpa, we always had some exciting tale to tell.</p><p><mark>We never showed our friends Grandpa’s picture.</mark> Not that we were ashamed of him, but because we knew that the glamorous tales we told didn’t go with the real thing. Our friends would have laughed at the picture because Grandpa wasn’t tall and stately like TV Indians. His hair wasn’t in braids but hung in stringy gray strands on his neck, and he was old. He was our great-grandfather, and he didn’t live in a tepee but all by himself in a part log, part tar-paper shack on the Rosebud Reservation in South Dakota. So when Grandpa came to visit us, <mark>I was so ashamed and embarrassed I could’ve died.</mark></p></div></div><div class="library-footer"><button id="open-bookshelf-btn">Choose Another Text...</button></div>` },
                 'vocab-journal': { title: 'Vocabulary Journal', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" /></svg>', content: `<div class="placeholder-content">This area would display a list of words the student has saved from the Library,<br>along with their definitions and personal notes.</div>` },
                 artifacts: { title: 'Artifacts', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20.54,5.23L19.15,3.55C18.88,3.21 18.47,3 18,3H6C5.47,3 5.06,3.21 4.78,3.55L3.39,5.23C3.13,5.53 3,5.96 3,6.4V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6.4C21,5.96 20.87,5.53 20.61,5.23M19,19H5V7H19V19M11,10H13V12H11V10M11,13H13V15H11V13M15,10H17V12H15V10M15,13H17V15H15V13M7,10H9V15H7V10Z" /></svg>', content: `<div class="placeholder-content">This area would show a collection of the student's completed graphic organizers<br>and other structured artifacts.</div>` },
-                notebook: { title: "Writer's Notebook", icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,2H7A2,2 0 0,0 5,4V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V4A2,2 0 0,0 17,2M17,20H7V4H17V20M12,18A1,1 0 0,1 11,17V11L8.5,13.5L7.08,12.08L12,7.16L16.92,12.08L15.5,13.5L13,11V17A1,1 0 0,1 12,18Z"/></svg>', content: `<div class="placeholder-content">This would be an embedded document for the student's private brainstorming,<br>outlining, and notes.</div>` },
-                'driving-task': { title: 'Driving Task: Literary Analysis', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13V3.5M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>', content: `<div class="pane-content"><div class="gdoc-sim"><h1>Literary Analysis: The Weight of Heritage</h1><p>In Virginia Driving Hawk Sneve’s “The Medicine Bag,” the narrator, Martin, embarks on a reluctant journey from embarrassment to pride. His initial shame surrounding his grandfather is not born of malice, but of a youthful disconnect from his cultural heritage. This is evident when he admits, “I was so ashamed and embarrassed I could’ve died.” This powerful statement reveals the internal conflict between the glamorous stories he told his friends and the reality of his grandfather's appearance.</p><p>However, as the story progresses, Martin's perspective begins to shift. The turning point is not a single event, but a gradual understanding of the symbolism and history his grandfather carries...</p></div></div>` }
+                notebook: { title: "Writer's Notebook", icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17,2H7A2,2 0 0,0 5,4V20A2,2 0 0,0 7,22H17A2,2 0 0,0 19,20V4A2,2 0 0,0 17,2M17,20H7V4H17V20M12,18A1,1 0 0,1 11,17V11L8.5,13.5L7.08,12.08L12,7.16L16.92,12.08L15.5,13.5L13,11V17A1,1 0 0,1 12,18Z"/></svg>', content: `<div class="pane-content editor-pane"><textarea id="notebook-editor">This is the Writer's Notebook. It's a place for brainstorming, free writing, and keeping notes.</textarea></div>` },
+                'driving-task': { title: 'Driving Task: Literary Analysis', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13V3.5M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>', content: `<div class="pane-content editor-pane"><textarea id="driving-task-editor"><h1>Literary Analysis: The Weight of Heritage</h1><p>In Virginia Driving Hawk Sneve’s “The Medicine Bag,” the narrator, Martin, embarks on a reluctant journey from embarrassment to pride. His initial shame surrounding his grandfather is not born of malice, but of a youthful disconnect from his cultural heritage. This is evident when he admits, “I was so ashamed and embarrassed I could’ve died.” This powerful statement reveals the internal conflict between the glamorous stories he told his friends and the reality of his grandfather's appearance.</p><p>However, as the story progresses, Martin's perspective begins to shift. The turning point is not a single event, but a gradual understanding of the symbolism and history his grandfather carries...</p></textarea></div>` }
             };
+
+            // TINYMCE INITIALIZATION LOGIC
+            function initEditor(selector, height) {
+                // First, check if an editor instance already exists and remove it.
+                // This prevents errors when reopening a pane.
+                if (tinymce.get(selector)) {
+                    tinymce.remove(`#${selector}`);
+                }
+                
+                tinymce.init({
+                    selector: `#${selector}`,
+                    height: height,
+                    menubar: false,
+                    plugins: 'lists link image table code help wordcount',
+                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code help',
+                    content_style: 'body { font-family:Roboto,sans-serif; font-size:16px }'
+                });
+            }
             
             function renderPane(paneIndex, paneId) {
                 const pane = panes[paneIndex];
@@ -407,14 +436,16 @@
                     return;
                 }
                 const data = paneContent[paneId];
-                if (!data) { // Added a check for safety
-                    console.error('No content found for pane ID:', paneId);
-                    pane.classList.add('hidden');
-                    pane.innerHTML = '';
-                    return;
-                }
                 pane.classList.remove('hidden');
                 pane.innerHTML = `<div class="pane-header">${data.icon}<span>${data.title}</span></div>${data.content}`;
+
+                // After rendering the pane, check if we need to initialize an editor
+                if (paneId === 'notebook') {
+                    // Use a timeout to ensure the DOM is fully ready
+                    setTimeout(() => initEditor('notebook-editor', '100%'), 0);
+                } else if (paneId === 'driving-task') {
+                    setTimeout(() => initEditor('driving-task-editor', '100%'), 0);
+                }
             }
 
             function updateUI() { 
@@ -437,19 +468,18 @@
                     
                     if (clickedPaneId === 'library') {
                         openLibraryModal();
-                        return; // Library tab only opens the modal
+                        return;
                     }
 
                     const activeIndex = activePanes.indexOf(clickedPaneId);
 
-                    if (activeIndex > -1) { // If it's already active, deactivate it
+                    if (activeIndex > -1) {
                         activePanes[activeIndex] = null;
-                    } else { // If not active, find a slot for it
+                    } else {
                         const emptySlotIndex = activePanes.indexOf(null);
                         if (emptySlotIndex > -1) {
                             activePanes[emptySlotIndex] = clickedPaneId;
                         } else {
-                            // Replace the first (leftmost) pane
                             activePanes[0] = clickedPaneId;
                         }
                     }
@@ -476,17 +506,16 @@
                 const book = e.target.closest('.book');
                 if (book) {
                     const title = book.dataset.title;
-                    console.log(`Book clicked: ${title}`);
                     if (title === 'The Medicine Bag') {
-                        if (!activePanes.includes('library')) {
-                           const emptySlot = activePanes.indexOf(null);
-                           if (emptySlot !== -1) {
-                               activePanes[emptySlot] = 'library';
-                           } else {
-                               activePanes[0] = 'library'; // Replace leftmost pane
-                           }
-                           activePanes.sort((a, b) => { if (a === null) return 1; if (b === null) return -1; return Array.from(tabs).map(t => t.dataset.pane).indexOf(a) - Array.from(tabs).map(t => t.dataset.pane).indexOf(b); });
+                        // This logic is simplified for the demo: it always opens library in the first available pane.
+                        const emptySlot = activePanes.indexOf(null);
+                        if(emptySlot !== -1) {
+                             activePanes[emptySlot] = 'library';
+                        } else {
+                             activePanes[0] = 'library';
                         }
+                        const tabOrder = Array.from(tabs).map(t => t.dataset.pane);
+                        activePanes.sort((a, b) => { if (a === null) return 1; if (b === null) return -1; return tabOrder.indexOf(a) - tabOrder.indexOf(b); });
                         closeLibraryModal();
                         updateUI();
                     } else {
