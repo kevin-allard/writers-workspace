@@ -272,10 +272,12 @@
             background-color: #f8fafc;
             border-radius: 0 0 16px 0;
             transition: width 0.4s ease;
+            overflow: hidden;
         }
         /* New class to hide the sidebar */
         .assistant-sidebar.hidden {
-            display: none;
+            width: 0;
+            border-left: none;
         }
         .toggle-assistant-btn {
             margin-left: auto;
@@ -298,6 +300,7 @@
             display: flex;
             border-bottom: 1px solid var(--border-light);
             flex-shrink: 0;
+            min-width: 380px;
         }
         .assistant-tab-btn {
             flex: 1;
@@ -322,6 +325,7 @@
             flex-grow: 1;
             overflow-y: auto;
             padding: 20px;
+            min-width: 380px;
         }
         .assistant-panel {
             display: none;
@@ -590,7 +594,7 @@
                 
                 let headerContent = `<div class="pane-header">${data.icon}<span>${data.title}</span>`;
                 if (paneId === 'driving-task') {
-                    headerContent += `<button class="toggle-assistant-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,18.54L19.37,12.8L21,14.07L12,21.07L3,14.07L4.62,12.81L12,18.54M12,16L3,9L4.63,7.73L12,13.1L19.37,7.73L21,9L12,16M12,3.5L19.37,-1.27L21,0L12,7L3,0L4.63,-1.27L12,3.5Z"/></svg><span>Assistant</span></button>`;
+                    headerContent += `<button class="toggle-assistant-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.1,12.5l-2.2,2.2l-1.4-1.4l2.2-2.2L12,3.5L4.3,11.1L3,9.8L12,0.8L21.1,9.8l0,1.3l-1.4,1.4H21.1z M12,23.2l-9.1-9.1l1.4-1.4L12,20.4l7.7-7.7l1.4,1.4L12,23.2z"/></svg><span>Assistant</span></button>`;
                 }
                 headerContent += `</div>`;
                 
@@ -605,22 +609,28 @@
                     const assistantBtn = pane.querySelector('.toggle-assistant-btn');
                     const assistantSidebar = pane.querySelector('.assistant-sidebar');
                     const drivingTaskPane = pane;
-                    const otherPane = (paneIndex === 0) ? panes[1] : panes[0];
+                    const otherPaneIndex = paneIndex === 0 ? 1 : 0;
+                    const otherPane = panes[otherPaneIndex];
 
                     if (assistantBtn) {
                         assistantBtn.addEventListener('click', () => {
-                            const isHidden = assistantSidebar.classList.contains('hidden');
-                            if(isHidden) { // If opening the sidebar, go into focus mode
-                                otherPane.classList.add('hidden');
+                            const isOpening = assistantSidebar.classList.contains('hidden');
+
+                            if (isOpening) {
+                                // Enter Focus Mode
+                                if (!otherPane.classList.contains('hidden')) {
+                                    otherPane.classList.add('hidden');
+                                    // Update activePanes array to reflect that only one pane is visible
+                                    activePanes[otherPaneIndex] = null;
+                                    // Update top tabs to show only driving task is active
+                                    updateTopTabs();
+                                }
                                 drivingTaskPane.classList.add('is-focused');
                                 assistantSidebar.classList.remove('hidden');
-                                activePanes = ['driving-task', null].sort(); // Keep driving task active
-                                if (paneIndex === 1) activePanes.reverse(); // Ensure it stays in its pane
-                            } else { // If closing, just hide the sidebar
+                            } else {
+                                // Just hide sidebar, stay in focus mode
                                 assistantSidebar.classList.add('hidden');
                             }
-                            // Refresh UI for top tabs
-                            updateUI();
                         });
                     }
                     
@@ -638,12 +648,9 @@
                     }
                 }
             }
-
-            function updateUI() { 
-                renderPane(0, activePanes[0]); 
-                renderPane(1, activePanes[1]); 
-                
-                tabs.forEach(tab => { 
+            
+            function updateTopTabs() {
+                 tabs.forEach(tab => { 
                     const paneId = tab.dataset.pane; 
                     if (activePanes.includes(paneId)) { 
                         tab.classList.add('active'); 
@@ -652,10 +659,15 @@
                     }
                 }); 
             }
+
+            function updateUI() { 
+                renderPane(0, activePanes[0]); 
+                renderPane(1, activePanes[1]);
+                updateTopTabs();
+            }
             
             tabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
-                    // When a main tab is clicked, reset any focus mode
                     panes.forEach(p => p.classList.remove('is-focused'));
 
                     const clickedPaneId = tab.dataset.pane;
