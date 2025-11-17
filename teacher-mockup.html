@@ -15,18 +15,19 @@
             line-height: 1.6;
         }
 
-        /* --- Color Variables --- */
+        /* --- NEW: Softer Color Palette --- */
         :root {
-            --support-core: #28a745;       /* Green */
-            --support-light: #ffc107;      /* Yellow */
-            --support-moderate: #fd7e14;   /* Orange */
-            --support-intensive: #dc3545;  /* Red */
+            --support-core: #198754;       /* Calm Green */
+            --support-light: #0dcaf0;      /* Light Blue */
+            --support-moderate: #ffc107;   /* Golden Yellow */
+            --support-intensive: #6f42c1;  /* Deep Purple (replaces red) */
+            
             --score-empty: #e9ecef;
             --border-color: #dee2e6;
             --text-muted: #6c757d;
             --primary-blue: #007bff;
-            --target-area-bg: #f8f9fa; /* Light gray for target */
-            --target-area-border: #ced4da; /* Dashed border for target */
+            --target-area-bg: #f8f9fa; 
+            --target-area-border: #ced4da; 
         }
 
         /* --- General Card/Dashboard Styles --- */
@@ -53,6 +54,27 @@
         }
         .card-body {
             padding: 0; 
+        }
+
+        /* --- NEW: Page Legend Styles --- */
+        .legend-card-body {
+            padding: 1rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .legend-color-box {
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
         }
 
         /* --- Unit Navigation --- */
@@ -129,6 +151,7 @@
         .bar-segment:last-child {
             border-right: none;
         }
+        /* Color classes now use the new palette */
         .bar-segment.filled.support-core { background-color: var(--support-core); }
         .bar-segment.filled.support-light { background-color: var(--support-light); }
         .bar-segment.filled.support-moderate { background-color: var(--support-moderate); }
@@ -224,8 +247,8 @@
         .on-track-target-area {
             position: absolute;
             bottom: 0;
-            left: 10%; /* Match the .unit-data-area */
-            width: 80%; /* Match the .unit-data-area */
+            left: 10%; 
+            width: 80%; 
             background-color: var(--target-area-bg);
             border-top: 2px dashed var(--target-area-border);
             z-index: 1;
@@ -237,13 +260,12 @@
             cursor: pointer;
             transition: all 0.2s ease-in-out;
             position: relative; 
-            z-index: 2; /* Sits on top of the target area */
-            background-color: transparent; /* Area itself is clear */
+            z-index: 2; 
+            background-color: transparent; 
         }
         .unit-data-area:hover {
             opacity: 0.8;
         }
-        /* The colored bar is now an inner element */
         .unit-data-bar {
             width: 100%;
             height: 100%;
@@ -252,9 +274,9 @@
         
         .score-dot {
             position: absolute;
-            top: 0; /* Dot will be at the top of the area */
+            top: 0; 
             left: 50%;
-            transform: translateX(-50%) translateY(-50%); /* Center dot on the top edge */
+            transform: translateX(-50%) translateY(-50%); 
             width: 10px;
             height: 10px;
             border-radius: 50%;
@@ -263,6 +285,7 @@
             z-index: 10;
             pointer-events: none; 
         }
+        /* Dot colors use new palette */
         .score-dot.support-core { border-color: var(--support-core); }
         .score-dot.support-light { border-color: var(--support-light); }
         .score-dot.support-moderate { border-color: var(--support-moderate); }
@@ -321,27 +344,24 @@
             margin-top: 2rem;
         }
         
-        /* === CSS BUG FIX IS HERE === */
         .chart-bar-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 20%;
-            height: 100%; /* <-- THIS WAS MISSING */
-            justify-content: flex-end; /* <-- THIS WAS ADDED */
+            height: 100%; 
+            justify-content: flex-end; 
         }
         .chart-bar {
             width: 60px;
-            /* height: 100%; */ /* <-- THIS WAS REMOVED */
-            height: 0; /* <-- THIS WAS ADDED */
+            height: 0; 
             display: flex;
-            flex-direction: column-reverse; /* Stacks from bottom */
+            flex-direction: column-reverse; 
             background: var(--score-empty); 
             border-radius: 4px 4px 0 0;
             overflow: hidden;
-            transition: all 0.5s ease-out; /* <-- THIS WAS MODIFIED */
+            transition: all 0.5s ease-out; 
         }
-        /* === END CSS BUG FIX === */
 
         .chart-stack {
             width: 100%;
@@ -355,7 +375,8 @@
             font-size: 0.8rem;
             color: var(--text-muted);
         }
-        .legend {
+        /* Modal legend also uses new variables */
+        .modal-legend {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
@@ -363,22 +384,23 @@
             margin-top: 1.5rem;
             font-size: 0.9rem;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-        }
-        .legend-color-box {
-            width: 12px;
-            height: 12px;
-            margin-right: 5px;
-            border: 1px solid #ccc;
-        }
+        
     </style>
 </head>
 <body>
 
     <main style="max-width: 1200px; margin: 0 auto;">
         
+        <div class="card">
+            <div class="legend-card-body">
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-intensive);"></div> Intensive Support</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-moderate);"></div> Moderate Support</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-light);"></div> Light Support</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-core);"></div> Core Support</span>
+            </div>
+        </div>
+
+
         <div class="card teacher-dashboard">
             <div class="card-header">
                 <h2>Class Mastery Matrix</h2>
@@ -448,7 +470,7 @@
                 </div>
             </div>
             
-            <div class="legend">
+            <div classs="modal-legend" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1.5rem; font-size: 0.9rem;">
                 <span class="legend-item"><div class="legend-color-box" style="background: var(--support-intensive);"></div> Intensive</span>
                 <span class="legend-item"><div class="legend-color-box" style="background: var(--support-moderate);"></div> Moderate</span>
                 <span class="legend-item"><div class="legend-color-box" style="background: var(--support-light);"></div> Light</span>
@@ -470,6 +492,7 @@
             };
             const TOTAL_ARTIFACTS_PER_UNIT = 20;
 
+            // JS color map now references the CSS variables
             const colorMap = {
                 intensive: 'var(--support-intensive)',
                 moderate: 'var(--support-moderate)',
@@ -478,7 +501,7 @@
             };
 
             const mockDataCache = {};
-            const detailedMockDataCache = {}; // Cache for detailed distribution
+            const detailedMockDataCache = {}; 
 
             // --- Mock Data Generation (SIMULATED BACKEND) ---
             function getMockSummaryData(student, standard, unit) {
@@ -645,19 +668,16 @@
                         const score = summary.score;
                         const support = summary.support;
                         
-                        // --- Calculate On-Track Target ---
                         let targetScore = 2;
                         if (unit >= 3) targetScore = 2.5;
                         if (unit >= 5) targetScore = 3;
-                        const targetHeight = (targetScore / 4) * 100; // e.g., 2.5 / 4 = 62.5%
+                        const targetHeight = (targetScore / 4) * 100; 
 
-                        // Bar height: from bottom (score 0) to its score-line
                         const areaHeight = (score / 4) * 100;
 
-                        // This is the clickable area
                         const dataArea = document.createElement('div');
                         dataArea.className = 'unit-data-area';
-                        dataArea.style.height = `${areaHeight}%`; // Height is score
+                        dataArea.style.height = `${areaHeight}%`; 
                         dataArea.dataset.score = score;
                         dataArea.dataset.support = support;
                         dataArea.dataset.student = studentToShow;
@@ -665,12 +685,10 @@
                         dataArea.dataset.unit = unit;
                         dataArea.title = `Unit ${unit}: Score ${score} with ${support} support\nOn-Track Target: ${targetScore}`;
                         
-                        // This is the colored bar *inside* the clickable area
                         const dataBar = document.createElement('div');
                         dataBar.className = 'unit-data-bar';
                         dataBar.style.backgroundColor = colorMap[support] + 'B3'; // Add opacity
                         
-                        // --- Create Target Area ---
                         const targetArea = document.createElement('div');
                         targetArea.className = 'on-track-target-area';
                         targetArea.style.height = `${targetHeight}%`;
@@ -679,10 +697,10 @@
                         const scoreDot = document.createElement('div');
                         scoreDot.className = `score-dot support-${support}`;
                         
-                        unitColumn.appendChild(targetArea); // Add target area (bottom layer)
-                        dataArea.appendChild(dataBar); // Put bar inside area
-                        dataArea.appendChild(scoreDot); // Put dot inside area
-                        unitColumn.appendChild(dataArea); // Add data area (top layer)
+                        unitColumn.appendChild(targetArea); 
+                        dataArea.appendChild(dataBar); 
+                        dataArea.appendChild(scoreDot); 
+                        unitColumn.appendChild(dataArea); 
                         
                         chartGrid.appendChild(unitColumn);
                     }
@@ -734,7 +752,7 @@
                 if (event.target == modal) { modal.style.display = 'none'; }
             }
 
-            // --- THIS IS THE FIXED RENDER FUNCTION ---
+            // --- THIS IS THE FINAL, CORRECTED RENDER FUNCTION ---
             function renderModalChart(data) {
                 let maxCount = 0; // Find the max count in any single bar for scaling
                 for (let i = 1; i <= 4; i++) {
@@ -745,8 +763,7 @@
                     if (totalForBar > maxCount) maxCount = totalForBar;
                 }
                 
-                // If all scores are 0, set maxCount to 1 to avoid /0, but bars will be 0 height
-                if (maxCount === 0) maxCount = 1; 
+                if (maxCount === 0) maxCount = 1; // Avoid /0, but bars will be 0 height
 
                 // Loop over scores 1 through 4
                 for (let i = 1; i <= 4; i++) {
@@ -774,20 +791,20 @@
                                 stack.className = 'chart-stack';
                                 // Stack height is its percentage *of this bar's total*
                                 stack.style.height = `${(count / totalForBar) * 100}%`; 
-                                stack.style.backgroundColor = colorMap[supportType];
+                                // Use the CSS variable for color
+                                stack.style.backgroundColor = `var(--support-${supportType})`; 
                                 stack.title = `${count} artifacts with ${supportType} support`;
                                 barEl.appendChild(stack);
                             }
                         }
                         
                         // Set the *overall height of the bar* relative to the max bar
-                        // (e.g., if max bar has 15, and this has 5, it will be 1/3 height)
                         barEl.style.height = `${(totalForBar / maxCount) * 95}%`; // 95% of max
                         barEl.style.backgroundColor = 'transparent'; // Bar is just a container for stacks
                     } else {
-                        // No data for this bar, make it 0 height
+                        // No data for this bar, make it 0 height and empty
                         barEl.style.height = '0%'; 
-                        barEl.style.backgroundColor = 'var(--score-empty)'; // Default bg
+                        barEl.style.backgroundColor = 'var(--score-empty)'; 
                     }
                 }
             }
