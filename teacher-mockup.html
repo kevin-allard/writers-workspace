@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lenses on Literature - Mastery Mockup</title>
+    <style>
+        /* --- Base Styles --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        /* --- Color Variables --- */
+        :root {
+            --support-core: #28a745;       /* Green */
+            --support-light: #ffc107;      /* Yellow */
+            --support-moderate: #fd7e14;   /* Orange */
+            --support-intensive: #dc3545;  /* Red */
+            --score-empty: #e9ecef;
+            --border-color: #dee2e6;
+            --text-muted: #6c757d;
+            --primary-blue: #007bff;
+            --target-area-bg: #f8f9fa; /* Light gray for target */
+            --target-area-border: #ced4da; /* Dashed border for target */
+        }
+
+        /* --- General Card/Dashboard Styles --- */
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .card-header h2 {
+            margin: 0;
+            color: #212529;
+        }
+        .card-body {
+            padding: 0; 
+        }
+
+        /* --- Unit Navigation --- */
+        .unit-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .unit-nav button {
+            background-color: #e9ecef;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .unit-nav button:hover {
+            background-color: #dee2e6;
+        }
+        .unit-nav button.active {
+            background-color: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        /* --- Teacher View Table Styles --- */
+        .teacher-table-wrapper {
+            overflow-x: auto;
+        }
+        .teacher-table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+        .teacher-table th, .teacher-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .teacher-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom-width: 2px;
+        }
+        .teacher-table tr:last-child td {
+            border-bottom: none;
+        }
+        .teacher-table td:first-child {
+            font-weight: 500;
+        }
+
+        /* --- Summary Bar (Teacher View) Styles --- */
+        .summary-bar {
+            display: flex;
+            height: 20px;
+            width: 120px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .summary-bar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .bar-segment {
+            flex: 1; 
+            background-color: var(--score-empty);
+            border-right: 1px solid #fff; 
+        }
+        .bar-segment:last-child {
+            border-right: none;
+        }
+        .bar-segment.filled.support-core { background-color: var(--support-core); }
+        .bar-segment.filled.support-light { background-color: var(--support-light); }
+        .bar-segment.filled.support-moderate { background-color: var(--support-moderate); }
+        .bar-segment.filled.support-intensive { background-color: var(--support-intensive); }
+
+        /* --- Student View (Learning Journey) Styles --- */
+        .student-journey {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+        }
+        .journey-chart-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .journey-chart-card h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: #212529;
+        }
+        .journey-chart-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-grid {
+            position: relative;
+            height: 150px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 6 units */
+            border-left: 2px solid #ccc;
+            border-bottom: 2px solid #ccc;
+            margin-top: 1rem;
+            padding-left: 30px; /* Space for Y-axis labels */
+        }
+        .chart-grid-line {
+            position: absolute;
+            left: 0; 
+            width: 100%; 
+            border-top: 1px dashed #eee;
+            color: var(--text-muted);
+            font-size: 0.8em;
+            text-align: left;
+            line-height: 1;
+        }
+        .chart-grid-line::before {
+            content: attr(data-label);
+            position: absolute;
+            left: -30px; 
+            width: 25px;
+            text-align: right;
+        }
+        .chart-grid-line.mastery {
+            border-top: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        .chart-grid-line.score-4 { top: 0%; }
+        .chart-grid-line.score-3 { top: 33.3%; } 
+        .chart-grid-line.score-2 { top: 66.6%; } 
+        .chart-grid-line.score-1 { top: 100%; border-top: none; } 
+
+
+        .unit-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; 
+            align-items: center;
+            position: relative;
+            border-right: 1px dotted #eee;
+        }
+        .unit-column:last-child {
+            border-right: none;
+        }
+        .unit-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        /* --- On-Track Target Area --- */
+        .on-track-target-area {
+            position: absolute;
+            bottom: 0;
+            left: 10%; /* Match the .unit-data-area */
+            width: 80%; /* Match the .unit-data-area */
+            background-color: var(--target-area-bg);
+            border-top: 2px dashed var(--target-area-border);
+            z-index: 1;
+            transition: height 0.3s ease-out;
+        }
+
+        .unit-data-area {
+            width: 80%; 
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative; 
+            z-index: 2; /* Sits on top of the target area */
+            background-color: transparent; /* Area itself is clear */
+        }
+        .unit-data-area:hover {
+            opacity: 0.8;
+        }
+        /* The colored bar is now an inner element */
+        .unit-data-bar {
+            width: 100%;
+            height: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .score-dot {
+            position: absolute;
+            top: 0; /* Dot will be at the top of the area */
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%); /* Center dot on the top edge */
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #333; 
+            z-index: 10;
+            pointer-events: none; 
+        }
+        .score-dot.support-core { border-color: var(--support-core); }
+        .score-dot.support-light { border-color: var(--support-light); }
+        .score-dot.support-moderate { border-color: var(--support-moderate); }
+        .score-dot.support-intensive { border-color: var(--support-intensive); }
+        
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 600px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #333; }
+        #modal-title { margin-top: 0; margin-bottom: 0.5rem; }
+        #modal-subtitle {
+            margin-top: 0;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        /* --- Modal Chart Styles --- */
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 250px;
+            border-bottom: 2px solid #ccc;
+            padding-top: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        /* === CSS BUG FIX IS HERE === */
+        .chart-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20%;
+            height: 100%; /* <-- THIS WAS MISSING */
+            justify-content: flex-end; /* <-- THIS WAS ADDED */
+        }
+        .chart-bar {
+            width: 60px;
+            /* height: 100%; */ /* <-- THIS WAS REMOVED */
+            height: 0; /* <-- THIS WAS ADDED */
+            display: flex;
+            flex-direction: column-reverse; /* Stacks from bottom */
+            background: var(--score-empty); 
+            border-radius: 4px 4px 0 0;
+            overflow: hidden;
+            transition: all 0.5s ease-out; /* <-- THIS WAS MODIFIED */
+        }
+        /* === END CSS BUG FIX === */
+
+        .chart-stack {
+            width: 100%;
+            transition: height 0.5s ease-out;
+        }
+        .bar-label {
+            margin-top: 0.75rem;
+            font-weight: 600;
+        }
+        .bar-label-subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <main style="max-width: 1200px; margin: 0 auto;">
+        
+        <div class="card teacher-dashboard">
+            <div class="card-header">
+                <h2>Class Mastery Matrix</h2>
+                <div class="unit-nav" id="unit-nav-buttons">
+                    <button class="unit-btn active" data-unit="1">Unit 1</button>
+                    <button class="unit-btn" data-unit="2">Unit 2</button>
+                    <button class="unit-btn" data-unit="3">Unit 3</button>
+                    <button class="unit-btn" data-unit="4">Unit 4</button>
+                    <button class="unit-btn" data-unit="5">Unit 5</button>
+                    <button class="unit-btn" data-unit="6">Unit 6</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="teacher-table-wrapper">
+                    <table class="teacher-table" id="teacher-matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>W.6.1a (Claim)</th>
+                                <th>W.6.1b (Evidence)</th>
+                                <th>L.6.2 (Conventions)</th>
+                                <th>RI.6.1 (Inference)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-matrix-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card student-dashboard">
+            <div class="card-header">
+                <h2>My Learning Journey: Sarah Chen</h2>
+            </div>
+            <div class="student-journey" id="student-journey-charts">
+                </div>
+        </div>
+    </main>
+
+    <div id="masteryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title">Mastery Distribution</h3>
+            <h4 id="modal-subtitle">Unit X - YY Artifacts</h4>
+            
+            <div class="chart-container">
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" id="modal-chart-bar-1"></div>
+                    <div class="bar-label">1</div>
+                    <div class="bar-label-subtext">Beginning</div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" id="modal-chart-bar-2"></div>
+                    <div class="bar-label">2</div>
+                    <div class="bar-label-subtext">Developing</div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" id="modal-chart-bar-3"></div>
+                    <div class="bar-label">3</div>
+                    <div class="bar-label-subtext">Mastery</div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" id="modal-chart-bar-4"></div>
+                    <div class="bar-label">4</div>
+                    <div class="bar-label-subtext">Exceeds</div>
+                </div>
+            </div>
+            
+            <div class="legend">
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-intensive);"></div> Intensive</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-moderate);"></div> Moderate</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-light);"></div> Light</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-core);"></div> Core</span>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Global Constants & Mock Data ---
+            const STUDENTS = ['Benny Alvarez', 'Sarah Chen', 'Marcus Cole'];
+            const STANDARDS = {
+                'W.6.1a': 'W.6.1a (Claim)',
+                'W.6.1b': 'W.6.1b (Evidence)',
+                'L.6.2': 'L.6.2 (Conventions)',
+                'RI.6.1': 'RI.6.1 (Inference)'
+            };
+            const TOTAL_ARTIFACTS_PER_UNIT = 20;
+
+            const colorMap = {
+                intensive: 'var(--support-intensive)',
+                moderate: 'var(--support-moderate)',
+                light: 'var(--support-light)',
+                core: 'var(--support-core)'
+            };
+
+            const mockDataCache = {};
+            const detailedMockDataCache = {}; // Cache for detailed distribution
+
+            // --- Mock Data Generation (SIMULATED BACKEND) ---
+            function getMockSummaryData(student, standard, unit) {
+                const key = `${student}-${standard}-${unit}`;
+                if (mockDataCache[key]) {
+                    return mockDataCache[key];
+                }
+
+                let score = 1;
+                let support = 'intensive';
+
+                const studentIndex = STUDENTS.indexOf(student); 
+                const standardKeys = Object.keys(STANDARDS);
+                const standardIndex = standardKeys.indexOf(standard);
+
+                let baseScore = 1 + (unit / 2.5) + (studentIndex * 0.4) - (standardIndex * 0.1);
+                score = Math.round(baseScore + (Math.sin(unit * standardIndex) * 0.5)); 
+                score = Math.min(4, Math.max(1, score));
+
+                if (score === 4) support = 'core';
+                else if (score === 3 && (unit + studentIndex) > 3) support = 'core';
+                else if (score === 3) support = 'light';
+                else if (score === 2 && (unit + studentIndex) > 2) support = 'light';
+                else if (score === 2) support = 'moderate';
+                else if (score === 1 && (unit + studentIndex) > 1) support = 'moderate';
+                else support = 'intensive';
+
+                const result = { score, support };
+                mockDataCache[key] = result; 
+                return result;
+            }
+
+            function getMockDetailedChartData(student, standard, unit) {
+                const key = `${student}-${standard}-${unit}-detail`;
+                if (detailedMockDataCache[key]) {
+                    return detailedMockDataCache[key];
+                }
+                
+                const summary = getMockSummaryData(student, standard, unit);
+                const score = summary.score;
+                const support = summary.support;
+
+                const scores = { 1: { intensive: 0, moderate: 0, light: 0, core: 0 },
+                                 2: { intensive: 0, moderate: 0, light: 0, core: 0 },
+                                 3: { intensive: 0, moderate: 0, light: 0, core: 0 },
+                                 4: { intensive: 0, moderate: 0, light: 0, core: 0 }};
+                
+                let remaining = TOTAL_ARTIFACTS_PER_UNIT;
+
+                const mainCount = Math.floor(TOTAL_ARTIFACTS_PER_UNIT * (0.5 + Math.random() * 0.2)); // 50-70%
+                scores[score][support] += mainCount;
+                remaining -= mainCount;
+
+                while (remaining > 0) {
+                    let randomScore = score + Math.floor(Math.random() * 3) - 1; 
+                    randomScore = Math.min(4, Math.max(1, randomScore)); 
+                    
+                    let randomSupport = support;
+                    if (randomScore < score) { 
+                        randomSupport = ['intensive', 'moderate'][Math.floor(Math.random() * 2)];
+                    } else if (randomScore > score) { 
+                        randomSupport = ['light', 'core'][Math.floor(Math.random() * 2)];
+                    } else {
+                        randomSupport = ['intensive', 'moderate', 'light', 'core'][Math.floor(Math.random() * 4)];
+                    }
+                    
+                    scores[randomScore][randomSupport]++;
+                    remaining--;
+                }
+                
+                const result = { total: TOTAL_ARTIFACTS_PER_UNIT, scores };
+                detailedMockDataCache[key] = result;
+                return result;
+            }
+
+
+            // --- Teacher View Logic ---
+            const teacherMatrixBody = document.getElementById('teacher-matrix-body');
+            const unitButtons = document.querySelectorAll('#unit-nav-buttons .unit-btn');
+            let currentTeacherUnit = 1;
+
+            function renderTeacherMatrix(unit) {
+                if (!teacherMatrixBody) return;
+                teacherMatrixBody.innerHTML = ''; 
+                
+                STUDENTS.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${student}</td>`;
+                    
+                    Object.keys(STANDARDS).forEach(standardKey => {
+                        const standardName = STANDARDS[standardKey];
+                        const summary = getMockSummaryData(student, standardKey, unit); 
+                        
+                        const cell = document.createElement('td');
+                        const summaryBar = document.createElement('div');
+                        summaryBar.className = 'summary-bar';
+                        summaryBar.dataset.score = summary.score;
+                        summaryBar.dataset.support = summary.support;
+                        summaryBar.dataset.student = student;
+                        summaryBar.dataset.standard = standardKey; 
+                        summaryBar.dataset.unit = unit;
+                        summaryBar.title = `Unit ${unit}: ${standardName}\nScore: ${summary.score} with ${summary.support} support`;
+
+                        for (let i = 0; i < 4; i++) {
+                            const segment = document.createElement('div');
+                            segment.className = 'bar-segment';
+                            if (i < summary.score) {
+                                segment.classList.add('filled', `support-${summary.support}`);
+                            }
+                            summaryBar.appendChild(segment);
+                        }
+                        cell.appendChild(summaryBar);
+                        row.appendChild(cell);
+                    });
+                    teacherMatrixBody.appendChild(row);
+                });
+
+                attachSummaryBarListeners();
+            }
+
+            unitButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    unitButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentTeacherUnit = parseInt(button.dataset.unit, 10);
+                    renderTeacherMatrix(currentTeacherUnit);
+                });
+            });
+
+            renderTeacherMatrix(currentTeacherUnit);
+
+
+            // --- Student View Logic (Sarah Chen's Journey) ---
+            const studentJourneyCharts = document.getElementById('student-journey-charts');
+            const studentToShow = 'Sarah Chen'; 
+
+            function renderStudentJourney() {
+                if (!studentJourneyCharts) return;
+                studentJourneyCharts.innerHTML = ''; 
+
+                Object.keys(STANDARDS).forEach(standardKey => {
+                    const standardName = STANDARDS[standardKey];
+                    const chartCard = document.createElement('div');
+                    chartCard.className = 'journey-chart-card';
+                    
+                    chartCard.innerHTML = `
+                        <h3>${standardName}</h3>
+                        <p>Your progress on this skill across all units.</p>
+                        <div class="chart-grid">
+                            <div class="chart-grid-line score-4" data-label="4"></div>
+                            <div class="chart-grid-line score-3 mastery" data-label="3"></div>
+                            <div class="chart-grid-line score-2" data-label="2"></div>
+                            <div class="chart-grid-line score-1" data-label="1"></div>
+                        </div>
+                    `;
+                    const chartGrid = chartCard.querySelector('.chart-grid');
+
+                    for (let unit = 1; unit <= 6; unit++) {
+                        const unitColumn = document.createElement('div');
+                        unitColumn.className = 'unit-column';
+                        unitColumn.innerHTML = `<span class="unit-label">Unit ${unit}</span>`;
+
+                        const summary = getMockSummaryData(studentToShow, standardKey, unit);
+                        const score = summary.score;
+                        const support = summary.support;
+                        
+                        // --- Calculate On-Track Target ---
+                        let targetScore = 2;
+                        if (unit >= 3) targetScore = 2.5;
+                        if (unit >= 5) targetScore = 3;
+                        const targetHeight = (targetScore / 4) * 100; // e.g., 2.5 / 4 = 62.5%
+
+                        // Bar height: from bottom (score 0) to its score-line
+                        const areaHeight = (score / 4) * 100;
+
+                        // This is the clickable area
+                        const dataArea = document.createElement('div');
+                        dataArea.className = 'unit-data-area';
+                        dataArea.style.height = `${areaHeight}%`; // Height is score
+                        dataArea.dataset.score = score;
+                        dataArea.dataset.support = support;
+                        dataArea.dataset.student = studentToShow;
+                        dataArea.dataset.standard = standardKey;
+                        dataArea.dataset.unit = unit;
+                        dataArea.title = `Unit ${unit}: Score ${score} with ${support} support\nOn-Track Target: ${targetScore}`;
+                        
+                        // This is the colored bar *inside* the clickable area
+                        const dataBar = document.createElement('div');
+                        dataBar.className = 'unit-data-bar';
+                        dataBar.style.backgroundColor = colorMap[support] + 'B3'; // Add opacity
+                        
+                        // --- Create Target Area ---
+                        const targetArea = document.createElement('div');
+                        targetArea.className = 'on-track-target-area';
+                        targetArea.style.height = `${targetHeight}%`;
+                        targetArea.title = `On-Track Target: ${targetScore}`;
+
+                        const scoreDot = document.createElement('div');
+                        scoreDot.className = `score-dot support-${support}`;
+                        
+                        unitColumn.appendChild(targetArea); // Add target area (bottom layer)
+                        dataArea.appendChild(dataBar); // Put bar inside area
+                        dataArea.appendChild(scoreDot); // Put dot inside area
+                        unitColumn.appendChild(dataArea); // Add data area (top layer)
+                        
+                        chartGrid.appendChild(unitColumn);
+                    }
+                    studentJourneyCharts.appendChild(chartCard);
+                });
+                attachStudentChartListeners();
+            }
+
+            renderStudentJourney();
+
+
+            // --- Modal Handling (Shared Logic) ---
+            const modal = document.getElementById('masteryModal');
+            const closeModal = document.querySelector('.close-btn');
+
+            function openModal(student, standardKey, unit) {
+                const standardName = STANDARDS[standardKey];
+                
+                document.getElementById('modal-title').textContent = `${student} - ${standardName}`;
+                document.getElementById('modal-subtitle').textContent = `Unit ${unit} Artifact Distribution (${TOTAL_ARTIFACTS_PER_UNIT} total)`;
+                
+                const chartData = getMockDetailedChartData(student, standardKey, unit);
+                renderModalChart(chartData);
+                modal.style.display = 'block';
+            }
+
+            function attachSummaryBarListeners() {
+                const allSummaryBars = document.querySelectorAll('.summary-bar');
+                allSummaryBars.forEach(bar => {
+                    bar.onclick = () => {
+                        const { student, standard, unit } = bar.dataset;
+                        openModal(student, standard, parseInt(unit, 10));
+                    };
+                });
+            }
+
+            function attachStudentChartListeners() {
+                const allDataAreas = document.querySelectorAll('.unit-data-area');
+                allDataAreas.forEach(area => {
+                    area.onclick = () => {
+                        const { student, standard, unit } = area.dataset;
+                        openModal(student, standard, parseInt(unit, 10));
+                    };
+                });
+            }
+
+            closeModal.onclick = () => { modal.style.display = 'none'; }
+            window.onclick = (event) => {
+                if (event.target == modal) { modal.style.display = 'none'; }
+            }
+
+            // --- THIS IS THE FIXED RENDER FUNCTION ---
+            function renderModalChart(data) {
+                let maxCount = 0; // Find the max count in any single bar for scaling
+                for (let i = 1; i <= 4; i++) {
+                    let totalForBar = 0;
+                    for (const supportType of ['intensive', 'moderate', 'light', 'core']) {
+                        totalForBar += data.scores[i][supportType];
+                    }
+                    if (totalForBar > maxCount) maxCount = totalForBar;
+                }
+                
+                // If all scores are 0, set maxCount to 1 to avoid /0, but bars will be 0 height
+                if (maxCount === 0) maxCount = 1; 
+
+                // Loop over scores 1 through 4
+                for (let i = 1; i <= 4; i++) {
+                    const barEl = document.getElementById(`modal-chart-bar-${i}`);
+                    if (!barEl) {
+                        console.error(`Modal chart bar element 'modal-chart-bar-${i}' not found.`);
+                        continue; 
+                    }
+
+                    barEl.innerHTML = ''; // Clear previous stacks
+                    const scoreData = data.scores[i];
+                    let totalForBar = 0;
+
+                    // First, get the total count for *this bar*
+                    for (const supportType of ['intensive', 'moderate', 'light', 'core']) {
+                        totalForBar += scoreData[supportType];
+                    }
+
+                    if (totalForBar > 0) {
+                        // Create the stacks
+                        for (const supportType of ['intensive', 'moderate', 'light', 'core']) {
+                            const count = scoreData[supportType];
+                            if (count > 0) {
+                                const stack = document.createElement('div');
+                                stack.className = 'chart-stack';
+                                // Stack height is its percentage *of this bar's total*
+                                stack.style.height = `${(count / totalForBar) * 100}%`; 
+                                stack.style.backgroundColor = colorMap[supportType];
+                                stack.title = `${count} artifacts with ${supportType} support`;
+                                barEl.appendChild(stack);
+                            }
+                        }
+                        
+                        // Set the *overall height of the bar* relative to the max bar
+                        // (e.g., if max bar has 15, and this has 5, it will be 1/3 height)
+                        barEl.style.height = `${(totalForBar / maxCount) * 95}%`; // 95% of max
+                        barEl.style.backgroundColor = 'transparent'; // Bar is just a container for stacks
+                    } else {
+                        // No data for this bar, make it 0 height
+                        barEl.style.height = '0%'; 
+                        barEl.style.backgroundColor = 'var(--score-empty)'; // Default bg
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
