@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lenses on Literature - Mastery Mockup</title>
+    <style>
+        /* --- Base Styles --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        /* --- Softer Color Palette --- */
+        :root {
+            --support-core: #198754;       /* Calm Green */
+            --support-light: #0dcaf0;      /* Light Blue */
+            --support-moderate: #ffc107;   /* Golden Yellow */
+            --support-intensive: #6f42c1;  /* Deep Purple */
+            
+            --score-empty: #e9ecef;
+            --border-color: #dee2e6;
+            --text-muted: #6c757d;
+            --primary-blue: #007bff;
+            --target-area-bg: #f8f9fa; 
+            --target-area-border: #ced4da; 
+        }
+
+        /* --- General Card/Dashboard Styles --- */
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .card-header h2 {
+            margin: 0;
+            color: #212529;
+        }
+        .card-body {
+            padding: 0; 
+        }
+
+        /* --- Legend Styles --- */
+        .legend-card-body {
+            padding: 1rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .legend-color-box {
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        /* --- Unit Navigation --- */
+        .unit-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .unit-nav button {
+            background-color: #e9ecef;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .unit-nav button:hover {
+            background-color: #dee2e6;
+        }
+        .unit-nav button.active {
+            background-color: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        /* --- Teacher View Table Styles --- */
+        .teacher-table-wrapper {
+            overflow-x: auto;
+        }
+        .teacher-table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+        .teacher-table th, .teacher-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .teacher-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom-width: 2px;
+        }
+        .teacher-table tr:last-child td {
+            border-bottom: none;
+        }
+        .teacher-table td:first-child {
+            font-weight: 500;
+        }
+
+        /* --- Summary Bar Styles --- */
+        .summary-bar {
+            display: flex;
+            height: 20px;
+            width: 120px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .summary-bar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .bar-segment {
+            flex: 1; 
+            background-color: var(--score-empty);
+            border-right: 1px solid #fff; 
+        }
+        .bar-segment:last-child {
+            border-right: none;
+        }
+        .bar-segment.filled.support-core { background-color: var(--support-core); }
+        .bar-segment.filled.support-light { background-color: var(--support-light); }
+        .bar-segment.filled.support-moderate { background-color: var(--support-moderate); }
+        .bar-segment.filled.support-intensive { background-color: var(--support-intensive); }
+
+        /* --- Student View Styles --- */
+        .student-journey {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+        }
+        .journey-chart-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .journey-chart-card h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: #212529;
+        }
+        .journey-chart-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-grid {
+            position: relative;
+            height: 150px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); 
+            border-left: 2px solid #ccc;
+            border-bottom: 2px solid #ccc;
+            margin-top: 1rem;
+            padding-left: 30px; 
+        }
+        .chart-grid-line {
+            position: absolute;
+            left: 0; 
+            width: 100%; 
+            border-top: 1px dashed #eee;
+            color: var(--text-muted);
+            font-size: 0.8em;
+            text-align: left;
+            line-height: 1;
+        }
+        .chart-grid-line::before {
+            content: attr(data-label);
+            position: absolute;
+            left: -30px; 
+            width: 25px;
+            text-align: right;
+        }
+        .chart-grid-line.mastery {
+            border-top: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        .chart-grid-line.score-4 { top: 0%; }
+        .chart-grid-line.score-3 { top: 33.3%; } 
+        .chart-grid-line.score-2 { top: 66.6%; } 
+        .chart-grid-line.score-1 { top: 100%; border-top: none; } 
+
+        .unit-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; 
+            align-items: center;
+            position: relative;
+            border-right: 1px dotted #eee;
+        }
+        .unit-column:last-child {
+            border-right: none;
+        }
+        .unit-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .on-track-target-area {
+            position: absolute;
+            bottom: 0;
+            left: 10%; 
+            width: 80%; 
+            background-color: var(--target-area-bg);
+            border-top: 2px dashed var(--target-area-border);
+            z-index: 1;
+            transition: height 0.3s ease-out;
+        }
+
+        .unit-data-area {
+            width: 80%; 
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative; 
+            z-index: 2; 
+            background-color: transparent; 
+        }
+        .unit-data-area:hover {
+            opacity: 0.8;
+        }
+        .unit-data-bar {
+            width: 100%;
+            height: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .score-dot {
+            position: absolute;
+            top: 0; 
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%); 
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #333; 
+            z-index: 10;
+            pointer-events: none; 
+        }
+        .score-dot.support-core { border-color: var(--support-core); }
+        .score-dot.support-light { border-color: var(--support-light); }
+        .score-dot.support-moderate { border-color: var(--support-moderate); }
+        .score-dot.support-intensive { border-color: var(--support-intensive); }
+        
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto; /* Moved up slightly */
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 900px; /* WIDER modal for timeline */
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #333; }
+        #modal-title { margin-top: 0; margin-bottom: 0.5rem; }
+        #modal-subtitle {
+            margin-top: 0;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        /* --- NEW: Time-Series Chart Styles (Modal) --- */
+        .time-chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            border-left: 2px solid #ccc;
+            border-bottom: 2px solid #ccc;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr); /* 20 Artifact columns */
+            padding-left: 40px; /* Axis labels */
+        }
+
+        .time-y-axis-label {
+            position: absolute;
+            left: -40px;
+            width: 30px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transform: translateY(-50%);
+        }
+
+        .time-chart-column {
+            position: relative;
+            height: 100%;
+            border-right: 1px dotted #f0f0f0;
+            display: flex;
+            justify-content: center;
+        }
+        .time-chart-column:last-child { border-right: none; }
+
+        .time-chart-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            position: absolute;
+            /* Top is set by JS */
+            background-color: #fff;
+            border: 3px solid #ccc;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+        .time-chart-dot:hover {
+            transform: translateY(-50%) scale(1.5);
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        /* Connector line logic would go here, but distinct dots are cleaner for now */
+        
+        .time-x-axis-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Dot Colors */
+        .dot-intensive { border-color: var(--support-intensive); background-color: var(--support-intensive); }
+        .dot-moderate { border-color: var(--support-moderate); background-color: var(--support-moderate); }
+        .dot-light { border-color: var(--support-light); background-color: var(--support-light); }
+        .dot-core { border-color: var(--support-core); background-color: var(--support-core); }
+
+        .modal-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <main style="max-width: 1200px; margin: 0 auto;">
+        
+        <div class="card">
+            <div class="legend-card-body">
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-intensive);"></div> Intensive Support</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-moderate);"></div> Moderate Support</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-light);"></div> Light Support</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-core);"></div> Core Support</span>
+            </div>
+        </div>
+
+        <div class="card teacher-dashboard">
+            <div class="card-header">
+                <h2>Class Mastery Matrix</h2>
+                <div class="unit-nav" id="unit-nav-buttons">
+                    <button class="unit-btn active" data-unit="1">Unit 1</button>
+                    <button class="unit-btn" data-unit="2">Unit 2</button>
+                    <button class="unit-btn" data-unit="3">Unit 3</button>
+                    <button class="unit-btn" data-unit="4">Unit 4</button>
+                    <button class="unit-btn" data-unit="5">Unit 5</button>
+                    <button class="unit-btn" data-unit="6">Unit 6</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="teacher-table-wrapper">
+                    <table class="teacher-table" id="teacher-matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>W.6.1a (Claim)</th>
+                                <th>W.6.1b (Evidence)</th>
+                                <th>L.6.2 (Conventions)</th>
+                                <th>RI.6.1 (Inference)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-matrix-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card student-dashboard">
+            <div class="card-header">
+                <h2>My Learning Journey: Sarah Chen</h2>
+            </div>
+            <div class="student-journey" id="student-journey-charts">
+                </div>
+        </div>
+    </main>
+
+    <div id="masteryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title">Artifact Timeline</h3>
+            <h4 id="modal-subtitle">Sequence of 20 Artifacts in Unit X</h4>
+            
+            <div class="time-chart-wrapper" id="modal-timeline-chart">
+                <div style="position: absolute; top: 0%; left: 0; width: 100%; border-top: 1px solid #eee;"></div>
+                <div class="time-y-axis-label" style="top: 0%;">4</div>
+                
+                <div style="position: absolute; top: 33.3%; left: 0; width: 100%; border-top: 1px solid #eee;"></div>
+                <div class="time-y-axis-label" style="top: 33.3%;">3</div>
+                
+                <div style="position: absolute; top: 66.6%; left: 0; width: 100%; border-top: 1px solid #eee;"></div>
+                <div class="time-y-axis-label" style="top: 66.6%;">2</div>
+
+                <div style="position: absolute; top: 100%; left: 0; width: 100%; border-top: 1px solid #ccc;"></div>
+                <div class="time-y-axis-label" style="top: 100%;">1</div>
+
+                </div>
+            
+            <div class="modal-legend">
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-intensive);"></div> Intensive</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-moderate);"></div> Moderate</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-light);"></div> Light</span>
+                <span class="legend-item"><div class="legend-color-box" style="background: var(--support-core);"></div> Core</span>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; color: #999; font-size: 0.8rem;">
+                X-Axis represents time (Order of artifacts 1-20)
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const STUDENTS = ['Benny Alvarez', 'Sarah Chen', 'Marcus Cole'];
+            const STANDARDS = {
+                'W.6.1a': 'W.6.1a (Claim)',
+                'W.6.1b': 'W.6.1b (Evidence)',
+                'L.6.2': 'L.6.2 (Conventions)',
+                'RI.6.1': 'RI.6.1 (Inference)'
+            };
+            const TOTAL_ARTIFACTS_PER_UNIT = 20;
+            const colorMap = {
+                intensive: 'var(--support-intensive)',
+                moderate: 'var(--support-moderate)',
+                light: 'var(--support-light)',
+                core: 'var(--support-core)'
+            };
+
+            const mockDataCache = {};
+            const detailedMockDataCache = {};
+
+            // --- 1. Mock Data Generation (Summaries) ---
+            function getMockSummaryData(student, standard, unit) {
+                const key = `${student}-${standard}-${unit}`;
+                if (mockDataCache[key]) return mockDataCache[key];
+
+                let score = 1;
+                let support = 'intensive';
+
+                // Simple algorithm to create variance
+                const studentIndex = STUDENTS.indexOf(student); 
+                const standardKeys = Object.keys(STANDARDS);
+                const standardIndex = standardKeys.indexOf(standard);
+                
+                let baseScore = 1 + (unit / 2.5) + (studentIndex * 0.4) - (standardIndex * 0.1);
+                score = Math.round(baseScore + (Math.sin(unit * standardIndex) * 0.5)); 
+                score = Math.min(4, Math.max(1, score));
+
+                if (score === 4) support = 'core';
+                else if (score === 3 && (unit + studentIndex) > 3) support = 'core';
+                else if (score === 3) support = 'light';
+                else if (score === 2 && (unit + studentIndex) > 2) support = 'light';
+                else if (score === 2) support = 'moderate';
+                else if (score === 1 && (unit + studentIndex) > 1) support = 'moderate';
+                else support = 'intensive';
+
+                const result = { score, support };
+                mockDataCache[key] = result; 
+                return result;
+            }
+
+            // --- 2. NEW: Mock Data Generation (Time Series Array) ---
+            function getMockTimelineData(student, standard, unit) {
+                const key = `${student}-${standard}-${unit}-timeline`;
+                if (detailedMockDataCache[key]) return detailedMockDataCache[key];
+
+                // We want to generate an array of 20 objects: { id: 1, score: X, support: Y }
+                // We want to show GROWTH (generally).
+                
+                const artifacts = [];
+                const summary = getMockSummaryData(student, standard, unit);
+                const targetScore = summary.score; // They should roughly end up here
+                
+                let currentScore = Math.max(1, targetScore - 2); // Start lower
+                
+                for (let i = 1; i <= TOTAL_ARTIFACTS_PER_UNIT; i++) {
+                    
+                    // Slowly trend towards targetScore, with noise
+                    if (i % 5 === 0 && currentScore < targetScore) currentScore++;
+                    
+                    // Add some randomness (sometimes they slip back)
+                    let artifactScore = currentScore;
+                    if (Math.random() > 0.8) artifactScore = Math.max(1, artifactScore - 1);
+                    if (Math.random() > 0.9) artifactScore = Math.min(4, artifactScore + 1);
+                    
+                    // Determine support based on score
+                    let artifactSupport = 'intensive';
+                    if (artifactScore === 4) artifactSupport = 'core';
+                    else if (artifactScore === 3) artifactSupport = ['light', 'core'][Math.floor(Math.random()*2)];
+                    else if (artifactScore === 2) artifactSupport = ['moderate', 'light'][Math.floor(Math.random()*2)];
+                    else artifactSupport = ['intensive', 'moderate'][Math.floor(Math.random()*2)];
+
+                    artifacts.push({
+                        id: i,
+                        score: artifactScore,
+                        support: artifactSupport
+                    });
+                }
+                
+                detailedMockDataCache[key] = artifacts;
+                return artifacts;
+            }
+
+
+            // --- 3. Render Functions (Teacher & Student Views) ---
+            // ... (Same logic as previous versions, just ensuring listeners are attached) ...
+            
+            const teacherMatrixBody = document.getElementById('teacher-matrix-body');
+            const unitButtons = document.querySelectorAll('#unit-nav-buttons .unit-btn');
+            let currentTeacherUnit = 1;
+
+            function renderTeacherMatrix(unit) {
+                teacherMatrixBody.innerHTML = ''; 
+                STUDENTS.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${student}</td>`;
+                    Object.keys(STANDARDS).forEach(standardKey => {
+                        const summary = getMockSummaryData(student, standardKey, unit); 
+                        const cell = document.createElement('td');
+                        const summaryBar = document.createElement('div');
+                        summaryBar.className = 'summary-bar';
+                        summaryBar.dataset.score = summary.score;
+                        summaryBar.dataset.support = summary.support;
+                        summaryBar.dataset.student = student;
+                        summaryBar.dataset.standard = standardKey; 
+                        summaryBar.dataset.unit = unit;
+                        summaryBar.title = `Click to see timeline for ${student}`;
+
+                        for (let i = 0; i < 4; i++) {
+                            const segment = document.createElement('div');
+                            segment.className = 'bar-segment';
+                            if (i < summary.score) {
+                                segment.classList.add('filled', `support-${summary.support}`);
+                            }
+                            summaryBar.appendChild(segment);
+                        }
+                        cell.appendChild(summaryBar);
+                        row.appendChild(cell);
+                    });
+                    teacherMatrixBody.appendChild(row);
+                });
+                attachSummaryBarListeners();
+            }
+
+            unitButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    unitButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentTeacherUnit = parseInt(button.dataset.unit, 10);
+                    renderTeacherMatrix(currentTeacherUnit);
+                });
+            });
+
+            // Student View Logic
+            function renderStudentJourney() {
+                const container = document.getElementById('student-journey-charts');
+                container.innerHTML = ''; 
+                const student = 'Sarah Chen';
+
+                Object.keys(STANDARDS).forEach(standardKey => {
+                    const standardName = STANDARDS[standardKey];
+                    const card = document.createElement('div');
+                    card.className = 'journey-chart-card';
+                    card.innerHTML = `<h3>${standardName}</h3><p>Growth across units.</p><div class="chart-grid"><div class="chart-grid-line score-4" data-label="4"></div><div class="chart-grid-line score-3 mastery" data-label="3"></div><div class="chart-grid-line score-2" data-label="2"></div><div class="chart-grid-line score-1" data-label="1"></div></div>`;
+                    const grid = card.querySelector('.chart-grid');
+
+                    for (let unit = 1; unit <= 6; unit++) {
+                        const summary = getMockSummaryData(student, standardKey, unit);
+                        const col = document.createElement('div');
+                        col.className = 'unit-column';
+                        col.innerHTML = `<span class="unit-label">Unit ${unit}</span>`;
+                        
+                        // Target Logic
+                        let tScore = 2; if(unit>=3) tScore=2.5; if(unit>=5) tScore=3;
+                        const targetDiv = document.createElement('div');
+                        targetDiv.className = 'on-track-target-area';
+                        targetDiv.style.height = `${(tScore/4)*100}%`;
+                        targetDiv.title = `On-Track Target: ${tScore}`;
+                        
+                        const dataArea = document.createElement('div');
+                        dataArea.className = 'unit-data-area';
+                        dataArea.style.height = `${(summary.score/4)*100}%`;
+                        dataArea.dataset.student = student;
+                        dataArea.dataset.standard = standardKey;
+                        dataArea.dataset.unit = unit;
+
+                        const bar = document.createElement('div');
+                        bar.className = 'unit-data-bar';
+                        bar.style.backgroundColor = colorMap[summary.support] + 'B3';
+
+                        const dot = document.createElement('div');
+                        dot.className = `score-dot support-${summary.support}`;
+
+                        col.appendChild(targetDiv);
+                        dataArea.appendChild(bar);
+                        dataArea.appendChild(dot);
+                        col.appendChild(dataArea);
+                        grid.appendChild(col);
+                    }
+                    container.appendChild(card);
+                });
+                attachStudentChartListeners();
+            }
+
+            // --- 4. Modal Logic (Timeline View) ---
+            const modal = document.getElementById('masteryModal');
+            const closeModal = document.querySelector('.close-btn');
+            const timelineContainer = document.getElementById('modal-timeline-chart');
+
+            function openModal(student, standardKey, unit) {
+                const standardName = STANDARDS[standardKey];
+                document.getElementById('modal-title').textContent = `${student} - ${standardName}`;
+                document.getElementById('modal-subtitle').textContent = `Sequence of 20 Artifacts in Unit ${unit}`;
+                
+                const timelineData = getMockTimelineData(student, standardKey, unit);
+                renderTimelineChart(timelineData);
+                modal.style.display = 'block';
+            }
+
+            function renderTimelineChart(data) {
+                // Clear existing columns (keep axis lines if possible, or rebuild)
+                // Simplest is to rebuild content over axis lines using absolute pos for dots
+                
+                // We need to keep the axis lines, so let's just remove old columns
+                const oldCols = timelineContainer.querySelectorAll('.time-chart-column');
+                oldCols.forEach(c => c.remove());
+
+                data.forEach(item => {
+                    const col = document.createElement('div');
+                    col.className = 'time-chart-column';
+                    
+                    // Create the dot
+                    const dot = document.createElement('div');
+                    dot.className = `time-chart-dot dot-${item.support}`;
+                    
+                    // Position Top:
+                    // Score 4 = 0%, Score 1 = 100%
+                    // Formula: (4 - score) / 3 * 100%
+                    // 4->0, 3->33, 2->66, 1->100
+                    const topPos = ((4 - item.score) / 3) * 100;
+                    dot.style.top = `${topPos}%`;
+                    dot.title = `Artifact #${item.id}: Score ${item.score} (${item.support})`;
+
+                    // Label
+                    const label = document.createElement('div');
+                    label.className = 'time-x-axis-label';
+                    label.textContent = item.id;
+
+                    col.appendChild(dot);
+                    col.appendChild(label);
+                    timelineContainer.appendChild(col);
+                });
+            }
+
+            function attachSummaryBarListeners() {
+                document.querySelectorAll('.summary-bar').forEach(bar => {
+                    bar.onclick = () => openModal(bar.dataset.student, bar.dataset.standard, parseInt(bar.dataset.unit));
+                });
+            }
+
+            function attachStudentChartListeners() {
+                document.querySelectorAll('.unit-data-area').forEach(area => {
+                    area.onclick = () => openModal(area.dataset.student, area.dataset.standard, parseInt(area.dataset.unit));
+                });
+            }
+
+            closeModal.onclick = () => { modal.style.display = 'none'; };
+            window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+
+            // Initial Render
+            renderTeacherMatrix(1);
+            renderStudentJourney();
+        });
+    </script>
+
+</body>
+</html>
