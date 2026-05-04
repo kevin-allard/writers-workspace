@@ -99,6 +99,7 @@
             flex: 1; background-color: var(--panel-bg); border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.12); display: flex;
             flex-direction: column; overflow: hidden; color: var(--text-dark);
+            position: relative; /* For filter popup positioning */
         }
         .workspace-pane.hidden { display: none; }
         
@@ -111,21 +112,39 @@
         .pane-content { flex-grow: 1; overflow-y: auto; padding: 24px; font-size: 16px; line-height: 1.6; }
         
         /* --- WRITER'S NOTEBOOK PANE --- */
-        .notebook-wrapper { display: flex; height: 100%; overflow: hidden; }
-        .notebook-filters {
-            width: 280px; flex-shrink: 0; padding: 20px;
-            border-right: 1px solid var(--border-light); overflow-y: auto;
-            background-color: var(--surface-bg);
+        .notebook-filter-btn {
+            margin-left: auto; background-color: transparent; border: 1px solid var(--border-light);
+            border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 500;
+            color: var(--text-secondary-dark); cursor: pointer; display: flex;
+            align-items: center; gap: 6px; transition: background-color 0.2s;
         }
-        .filter-group { margin-bottom: 24px; }
+        .notebook-filter-btn:hover { background-color: var(--surface-bg); }
+        .notebook-filter-btn svg { width: 16px; height: 16px; }
+
+        .filter-popup {
+            position: absolute; top: 65px; right: 24px; z-index: 10;
+            width: 300px; background-color: #fff; border-radius: 12px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 16px;
+        }
+        .filter-popup.hidden { display: none; }
+        .filter-group { margin-bottom: 16px; }
         .filter-group label {
             display: block; font-size: 14px; font-weight: 700;
             margin-bottom: 8px; color: var(--text-secondary-dark);
         }
         .filter-group select {
             width: 100%; padding: 8px 12px; border-radius: 8px;
-            border: 1px solid var(--border-light);
+            border: 1px solid #ccc;
         }
+        .filter-actions { display: flex; gap: 8px; margin-top: 16px; }
+        .filter-actions button {
+            flex: 1; padding: 8px; border-radius: 8px; border: 1px solid transparent;
+            font-weight: 500; cursor: pointer;
+        }
+        .filter-actions .apply-btn { background-color: var(--primary-color); color: #fff; }
+        .filter-actions .clear-btn { background-color: transparent; border-color: var(--border-light); color: var(--text-secondary-dark); }
+        
         .notebook-feed { flex-grow: 1; overflow-y: auto; padding: 24px; }
         .notebook-card {
             background-color: #fff; border: 1px solid var(--border-light);
@@ -215,157 +234,152 @@
         document.addEventListener('DOMContentLoaded', () => {
             // --- MOCK DATA FOR GRADE 8, UNIT 2 --- //
 
-            /**
-             * The `texts` array simulates the list of texts available for this unit.
-             * In a real application, this would be fetched from a content API.
-             */
             const texts = [
-                { id: 'marigolds', title: 'Marigolds' },
-                { id: 'science-decisions', title: 'The Science of Regrettable Decisions' },
-                { id: 'adolescent-brain', title: 'The Mysterious Workings of the Adolescent Brain' },
-                { id: 'sound-of-thunder', title: 'A Sound of Thunder' },
-                { id: 'lady-or-tiger', title: 'The Lady, or the Tiger?' },
-                { id: 'necklace', title: 'The Necklace' },
-                { id: 'button-button', title: 'Button, Button' }
+                { id: 'marigolds', title: 'Marigolds' }, { id: 'science-decisions', title: 'The Science of Regrettable Decisions' },
+                { id: 'adolescent-brain', title: 'The Mysterious Workings of the Adolescent Brain' }, { id: 'sound-of-thunder', title: 'A Sound of Thunder' },
+                { id: 'lady-or-tiger', title: 'The Lady, or the Tiger?' }, { id: 'necklace', title: 'The Necklace' }, { id: 'button-button', title: 'Button, Button' }
             ];
 
-            /**
-             * The `notebookCategories` array defines the authorable categories for notebook entries.
-             * This allows for consistent filtering and organization.
-             */
             const notebookCategories = [
-                { id: 'initial-reaction', name: 'Initial Reaction / Engagement' },
-                { id: 'text-evidence', name: 'Text Evidence' },
-                { id: 'character-insight', name: 'Character Insight' },
-                { id: 'pivotal-moment', name: 'Pivotal Moment' },
-                { id: 'cause-consequence', name: 'Cause / Consequence / Identity' },
-                { id: 'claim-dev', name: 'Claim Development' },
-                { id: 'thesis-dev', name: 'Thesis Development' },
-                { id: 'vocab-lang', name: 'Vocabulary / Language Insight' },
-                { id: 'discussion', name: 'Discussion / Reflection' },
-                { id: 'writing-prep', name: 'Writing Preparation' }
+                { id: 'initial-reaction', name: 'Initial Reaction / Engagement' }, { id: 'text-evidence', name: 'Text Evidence' },
+                { id: 'character-insight', name: 'Character Insight' }, { id: 'pivotal-moment', name: 'Pivotal Moment' },
+                { id: 'cause-consequence', name: 'Cause / Consequence / Identity' }, { id: 'claim-dev', name: 'Claim Development' },
+                { id: 'thesis-dev', name: 'Thesis Development' }, { id: 'vocab-lang', name: 'Vocabulary / Language Insight' },
+                { id: 'discussion', name: 'Discussion / Reflection' }, { id: 'writing-prep', name: 'Writing Preparation' }
             ];
             
-            /**
-             * The `cumulativeArtifacts` array represents the major, persistent work products for the unit.
-             * These are built upon by multiple notebook entries.
-             */
             const cumulativeArtifacts = [
-                { id: 'evidence-bank', name: 'Evidence Bank' },
-                { id: 'vocab-journal', name: 'Vocabulary Journal' },
-                { id: 'pivotal-analysis', name: 'Pivotal Moment Analysis' },
-                { id: 'writing-task-frame', name: 'Writing Task Frame' },
-                { id: 'lit-analysis-planner', name: 'Literary Analysis Planner' },
-                { id: 'final-essay-prep', name: 'Final Essay Preparation' }
+                { id: 'evidence-bank', name: 'Evidence Bank' }, { id: 'vocab-journal', name: 'Vocabulary Journal' },
+                { id: 'pivotal-analysis', name: 'Pivotal Moment Analysis' }, { id: 'writing-task-frame', name: 'Writing Task Frame' },
+                { id: 'lit-analysis-planner', name: 'Literary Analysis Planner' }, { id: 'final-essay-prep', name: 'Final Essay Preparation' }
             ];
 
-            /**
-             * The `notebookEntries` array is the core of this simulation.
-             * It represents the student's accumulated work from various activities.
-             * The `content` property simulates the HTML output of a Learnetic/EdTool module.
-             * In a real app, this data would be fetched from a student state service.
-             */
             const notebookEntries = [
-                {
-                    id: 1, activityRef: '1.3', textId: 'marigolds', categoryId: 'initial-reaction',
-                    title: 'First Impressions of Lizabeth',
-                    content: `<div class="simulated-module"><h4>Your initial thoughts about Lizabeth:</h4><blockquote>She seems confused and angry, especially when she mentions the dust. It feels like she's trapped by her situation.</blockquote></div>`,
-                    cumulativeArtifactId: null, includeInWritingPrep: false,
-                    moduleType: 'Open Response', sourceActivity: '1.3 First Read: Marigolds'
-                },
-                {
-                    id: 2, activityRef: '2.3', textId: 'science-decisions', categoryId: 'text-evidence',
-                    title: 'Evidence from "Regrettable Decisions"',
-                    content: `<div class="simulated-module"><h4>Key quote about adolescent decision-making:</h4><blockquote>"The prefrontal cortex, the brain's center for executive functions like impulse control and long-term planning, is not fully developed until the mid-20s."</blockquote></div>`,
-                    cumulativeArtifactId: 'evidence-bank', includeInWritingPrep: true,
-                    moduleType: 'Quote Selector', sourceActivity: '2.3 Reading: Informational Text'
-                },
-                {
-                    id: 3, activityRef: '4.4', textId: 'marigolds', categoryId: 'pivotal-moment',
-                    title: 'Pivotal Moment Chart (Part 1)',
-                    content: `<div class="simulated-module"><h4>Pivotal Moment: Lizabeth destroys the marigolds.</h4><p><strong>What happened:</strong> She flew into a rage and tore up Miss Lottie's flowers.</p><p><strong>Immediate Cause:</strong> Hearing her father cry and feeling powerless.</p></div>`,
-                    cumulativeArtifactId: 'pivotal-analysis', includeInWritingPrep: true,
-                    moduleType: 'Graphic Organizer', sourceActivity: '4.4 Analyze Pivotal Moments'
-                },
-                {
-                    id: 4, activityRef: '5.3', textId: 'marigolds', categoryId: 'cause-consequence',
-                    title: 'Pivotal Moment Chart (Part 2)',
-                    content: `<div class="simulated-module"><h4>Pivotal Moment: Lizabeth destroys the marigolds.</h4><p><strong>Consequence:</strong> She sees Miss Lottie not as a witch, but as a broken person.</p><p><strong>Impact on Identity:</strong> This is the moment she says "I had crossed a boundary... and could not get back." It marks the end of her innocence.</p></div>`,
-                    cumulativeArtifactId: 'pivotal-analysis', includeInWritingPrep: true,
-                    moduleType: 'Graphic Organizer', sourceActivity: '5.3 Connect Cause and Consequence'
-                },
-                 {
-                    id: 5, activityRef: '6.3', textId: 'marigolds', categoryId: 'claim-dev',
-                    title: 'Developing a Claim',
-                    content: `<div class="simulated-module"><h4>Draft Claim about Lizabeth's Identity:</h4><blockquote>Lizabeth's decision to destroy the marigolds, while destructive, was a necessary consequence of her circumstances that forced her to transition from childhood innocence to a more compassionate understanding of adulthood.</blockquote></div>`,
-                    cumulativeArtifactId: 'lit-analysis-planner', includeInWritingPrep: true,
-                    moduleType: 'Open Response', sourceActivity: '6.3 Draft a Claim'
-                }
+                { id: 1, activityRef: '1.3', textId: 'marigolds', categoryId: 'initial-reaction', title: 'First Impressions of Lizabeth', content: `<div class="simulated-module"><h4>Your initial thoughts about Lizabeth:</h4><blockquote>She seems confused and angry, especially when she mentions the dust. It feels like she's trapped by her situation.</blockquote></div>`, cumulativeArtifactId: null, includeInWritingPrep: false, moduleType: 'Open Response', sourceActivity: '1.3 First Read: Marigolds' },
+                { id: 2, activityRef: '2.3', textId: 'science-decisions', categoryId: 'text-evidence', title: 'Evidence from "Regrettable Decisions"', content: `<div class="simulated-module"><h4>Key quote about adolescent decision-making:</h4><blockquote>"The prefrontal cortex, the brain's center for executive functions like impulse control and long-term planning, is not fully developed until the mid-20s."</blockquote></div>`, cumulativeArtifactId: 'evidence-bank', includeInWritingPrep: true, moduleType: 'Quote Selector', sourceActivity: '2.3 Reading: Informational Text' },
+                { id: 3, activityRef: '4.4', textId: 'marigolds', categoryId: 'pivotal-moment', title: 'Pivotal Moment Chart (Part 1)', content: `<div class="simulated-module"><h4>Pivotal Moment: Lizabeth destroys the marigolds.</h4><p><strong>What happened:</strong> She flew into a rage and tore up Miss Lottie's flowers.</p><p><strong>Immediate Cause:</strong> Hearing her father cry and feeling powerless.</p></div>`, cumulativeArtifactId: 'pivotal-analysis', includeInWritingPrep: true, moduleType: 'Graphic Organizer', sourceActivity: '4.4 Analyze Pivotal Moments' },
+                { id: 4, activityRef: '5.3', textId: 'marigolds', categoryId: 'cause-consequence', title: 'Pivotal Moment Chart (Part 2)', content: `<div class="simulated-module"><h4>Pivotal Moment: Lizabeth destroys the marigolds.</h4><p><strong>Consequence:</strong> She sees Miss Lottie not as a witch, but as a broken person.</p><p><strong>Impact on Identity:</strong> This is the moment she says "I had crossed a boundary... and could not get back." It marks the end of her innocence.</p></div>`, cumulativeArtifactId: 'pivotal-analysis', includeInWritingPrep: true, moduleType: 'Graphic Organizer', sourceActivity: '5.3 Connect Cause and Consequence' },
+                { id: 5, activityRef: '6.3', textId: 'marigolds', categoryId: 'claim-dev', title: 'Developing a Claim', content: `<div class="simulated-module"><h4>Draft Claim about Lizabeth's Identity:</h4><blockquote>Lizabeth's decision to destroy the marigolds, while destructive, was a necessary consequence of her circumstances that forced her to transition from childhood innocence to a more compassionate understanding of adulthood.</blockquote></div>`, cumulativeArtifactId: 'lit-analysis-planner', includeInWritingPrep: true, moduleType: 'Open Response', sourceActivity: '6.3 Draft a Claim' }
             ];
             
-            // --- DOM ELEMENTS & STATE --- //
             const tabs = document.querySelectorAll('.tab-btn');
             const panes = [ document.getElementById('pane-1'), document.getElementById('pane-2') ];
             let activePanes = [null, null];
+            let currentFilters = { text: 'all', category: 'all', artifact: 'all' };
 
-            // --- RENDER FUNCTIONS --- //
+            const paneContent = {
+                library: { title: 'Library', icon: '...', content: `<div class="pane-content"><p>Showing texts for G8U2...</p></div>` },
+                'writer-notebook': { title: "Writer's Notebook", icon: '...', content: `<div class="notebook-feed"></div>` },
+                'writing-preparation': { title: 'Writing Preparation', icon: '...', content: `<div class="pane-content"></div>` },
+                'driving-task': { 
+                    title: 'Driving Task', icon: '...', 
+                    content: `<textarea id="driving-task-editor"><h1>Literary Analysis: The Causes and Consequences of Identity</h1><p>After reading ‘Marigolds’ by Eugenia W. Collier and analyzing narrative and informational texts on decision making, write a literary analysis in which you examine how pivotal moments in ‘Marigolds’ reveal the causes and consequences of Lizabeth’s decisions about her identity. Support your analysis with evidence from the text.</p></textarea>` 
+                }
+            };
 
             function renderPane(paneIndex, paneId) {
                 const pane = panes[paneIndex];
                 if (!paneId) { pane.classList.add('hidden'); pane.innerHTML = ''; return; }
                 
                 const data = paneContent[paneId];
+                let headerContent = `<div class="pane-header">${data.icon}<span>${data.title}</span>`;
+                if (paneId === 'writer-notebook') {
+                    headerContent += `<button class="notebook-filter-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg><span>Filters</span></button>`;
+                }
+                headerContent += `</div>`;
+                
                 pane.classList.remove('hidden');
-                pane.innerHTML = `<div class="pane-header">${data.icon}<span>${data.title}</span></div>${data.content}`;
+                pane.innerHTML = headerContent + data.content;
 
-                if (paneId === 'writer-notebook') { renderNotebook(pane); }
-                else if (paneId === 'writing-preparation') { renderWritingPrep(pane); }
-                else if (paneId === 'driving-task') { setTimeout(() => initEditor('driving-task-editor'), 0); }
+                if (paneId === 'writer-notebook') {
+                    renderNotebook(pane);
+                    // Attach event listener for the new filter button
+                    pane.querySelector('.notebook-filter-btn').addEventListener('click', (e) => {
+                        toggleFilterPopup(pane, e.currentTarget);
+                    });
+                } else if (paneId === 'writing-preparation') {
+                    renderWritingPrep(pane);
+                } else if (paneId === 'driving-task') {
+                    setTimeout(() => initEditor('driving-task-editor'), 0);
+                }
             }
 
-            function renderNotebook(pane) {
-                const content = pane.querySelector('.pane-content');
-                
-                // Build Filters HTML
-                const filtersHTML = `
+            function toggleFilterPopup(pane, button) {
+                let popup = pane.querySelector('.filter-popup');
+                if (popup) {
+                    popup.classList.toggle('hidden');
+                    return;
+                }
+
+                popup = document.createElement('div');
+                popup.className = 'filter-popup';
+                popup.innerHTML = `
                     <div class="filter-group">
                         <label for="filter-text">Text Selection</label>
-                        <select id="filter-text"><option value="all">All Texts</option>${texts.map(t => `<option value="${t.id}">${t.title}</option>`).join('')}</select>
+                        <select id="filter-text"><option value="all">All Texts</option>${texts.map(t => `<option value="${t.id}" ${currentFilters.text === t.id ? 'selected' : ''}>${t.title}</option>`).join('')}</select>
                     </div>
                     <div class="filter-group">
                         <label for="filter-category">Notebook Category</label>
-                        <select id="filter-category"><option value="all">All Categories</option>${notebookCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
+                        <select id="filter-category"><option value="all">All Categories</option>${notebookCategories.map(c => `<option value="${c.id}" ${currentFilters.category === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}</select>
                     </div>
                     <div class="filter-group">
                         <label for="filter-artifact">Cumulative Artifact</label>
-                        <select id="filter-artifact"><option value="all">All Artifacts</option>${cumulativeArtifacts.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}</select>
+                        <select id="filter-artifact"><option value="all">All Artifacts</option>${cumulativeArtifacts.map(a => `<option value="${a.id}" ${currentFilters.artifact === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}</select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="clear-btn">Clear Filters</button>
+                        <button class="apply-btn">Apply Filters</button>
                     </div>`;
+                pane.appendChild(popup);
 
-                // Build Notebook Feed HTML
+                popup.querySelector('.apply-btn').addEventListener('click', () => {
+                    currentFilters.text = popup.querySelector('#filter-text').value;
+                    currentFilters.category = popup.querySelector('#filter-category').value;
+                    currentFilters.artifact = popup.querySelector('#filter-artifact').value;
+                    renderNotebook(pane);
+                    popup.classList.add('hidden');
+                });
+
+                popup.querySelector('.clear-btn').addEventListener('click', () => {
+                    currentFilters = { text: 'all', category: 'all', artifact: 'all' };
+                    popup.querySelectorAll('select').forEach(s => s.value = 'all');
+                    renderNotebook(pane);
+                    popup.classList.add('hidden');
+                });
+                
+                // Close popup when clicking outside
+                setTimeout(() => {
+                    document.addEventListener('click', function closeOnClickOutside(e) {
+                        if (!popup.contains(e.target) && e.target !== button) {
+                            popup.classList.add('hidden');
+                            document.removeEventListener('click', closeOnClickOutside);
+                        }
+                    });
+                }, 0);
+            }
+
+            function renderNotebook(pane) {
+                const feed = pane.querySelector('.notebook-feed');
+                if (!feed) return;
+                
                 let feedHTML = '';
-                const filteredEntries = getFilteredNotebookEntries();
+                const filteredEntries = notebookEntries.filter(entry => {
+                    const textMatch = (currentFilters.text === 'all' || entry.textId === currentFilters.text);
+                    const categoryMatch = (currentFilters.category === 'all' || entry.categoryId === currentFilters.category);
+                    const artifactMatch = (currentFilters.artifact === 'all' || entry.cumulativeArtifactId === currentFilters.artifact);
+                    return textMatch && categoryMatch && artifactMatch;
+                });
+
                 filteredEntries.forEach(entry => {
-                    const text = texts.find(t => t.id === entry.textId);
                     const category = notebookCategories.find(c => c.id === entry.categoryId);
                     const artifact = cumulativeArtifacts.find(a => a.id === entry.cumulativeArtifactId);
-
                     feedHTML += `
                         <div class="notebook-card">
-                            <div class="card-header">
-                                <h3>${entry.title}</h3>
-                                <span class="activity-ref">From Activity ${entry.activityRef}</span>
-                            </div>
+                            <div class="card-header"><h3>${entry.title}</h3><span class="activity-ref">From Activity ${entry.activityRef}</span></div>
                             <div class="card-content">${entry.content}</div>
                             <div class="card-footer">
-                                <div class="metadata-section">
-                                    <span class="metadata-label">Category:</span>
-                                    <span class="chip">${category ? category.name : 'N/A'}</span>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="copy-btn">Copy to Draft</button>
-                                    <button class="add-to-planner-btn">Add to Planner</button>
-                                </div>
-                                <!-- This section simulates the authoring metadata for stakeholder visibility -->
+                                <div class="metadata-section"><span class="metadata-label">Category:</span><span class="chip">${category ? category.name : 'N/A'}</span></div>
+                                <div class="card-actions"><button class="copy-btn">Copy to Draft</button><button class="add-to-planner-btn">Add to Planner</button></div>
                                 <details style="font-size: 11px; color: #666; margin-top: 10px; cursor: pointer;">
                                     <summary>Authoring Metadata</summary>
                                     <ul style="margin-top: 5px; padding-left: 20px;">
@@ -379,40 +393,11 @@
                         </div>`;
                 });
                 
-                content.innerHTML = `
-                    <div class="notebook-wrapper">
-                        <aside class="notebook-filters">${filtersHTML}</aside>
-                        <div class="notebook-feed">${feedHTML}</div>
-                    </div>`;
+                feed.innerHTML = feedHTML;
 
-                // Add event listeners for filters
-                pane.querySelectorAll('.notebook-filters select').forEach(select => {
-                    select.addEventListener('change', () => renderNotebook(pane));
-                });
-                
-                // Add event listener for card actions
-                pane.querySelector('.notebook-feed').addEventListener('click', e => {
-                    if (e.target.matches('.copy-btn')) {
-                        alert("SIMULATION: Content copied to your Driving Task draft.");
-                    } else if (e.target.matches('.add-to-planner-btn')) {
-                        alert("SIMULATION: This entry has been added to your Literary Analysis Planner.");
-                    }
-                });
-            }
-
-            function getFilteredNotebookEntries() {
-                const filtersEl = document.querySelector('.notebook-filters');
-                if (!filtersEl) return notebookEntries;
-
-                const textFilter = filtersEl.querySelector('#filter-text').value;
-                const categoryFilter = filtersEl.querySelector('#filter-category').value;
-                const artifactFilter = filtersEl.querySelector('#filter-artifact').value;
-
-                return notebookEntries.filter(entry => {
-                    const textMatch = (textFilter === 'all' || entry.textId === textFilter);
-                    const categoryMatch = (categoryFilter === 'all' || entry.categoryId === categoryFilter);
-                    const artifactMatch = (artifactFilter === 'all' || entry.cumulativeArtifactId === artifactFilter);
-                    return textMatch && categoryMatch && artifactMatch;
+                feed.addEventListener('click', e => {
+                    if (e.target.matches('.copy-btn')) alert("SIMULATION: Content copied to your Driving Task draft.");
+                    else if (e.target.matches('.add-to-planner-btn')) alert("SIMULATION: This entry has been added to your Literary Analysis Planner.");
                 });
             }
 
@@ -420,31 +405,15 @@
                 const content = pane.querySelector('.pane-content');
                 let gridHTML = '<div class="prep-grid">';
                 cumulativeArtifacts.forEach(artifact => {
-                    gridHTML += `
-                        <div class="prep-card">
-                            <h3>${artifact.name}</h3>
-                            <p>A persistent artifact built across multiple activities.</p>
-                        </div>`;
+                    gridHTML += `<div class="prep-card"><h3>${artifact.name}</h3><p>A persistent artifact built across multiple activities.</p></div>`;
                 });
                 gridHTML += '</div>';
                 content.innerHTML = gridHTML;
             }
 
-            function initEditor(selector) {
-                if (tinymce.get(selector)) { tinymce.remove(`#${selector}`); }
-                tinymce.init({
-                    selector: `#${selector}`, height: '100%', menubar: false,
-                    plugins: 'lists link image table code help wordcount',
-                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code help',
-                    content_style: 'body { font-family:Roboto,sans-serif; font-size:16px }'
-                });
-            }
-
-            // --- UI LOGIC --- //
             function updateUI() { 
                 renderPane(0, activePanes[0]); 
                 renderPane(1, activePanes[1]);
-                
                 tabs.forEach(tab => { 
                     const paneId = tab.dataset.pane; 
                     if (activePanes.includes(paneId)) { tab.classList.add('active'); } 
@@ -455,47 +424,20 @@
             tabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     const clickedPaneId = tab.dataset.pane;
-                    const activeIndex = activePanes.indexOf(clickedPaneId);
-
-                    if (activeIndex > -1) { // If already active, do nothing
-                        return;
-                    }
-                    
+                    if (activePanes.includes(clickedPaneId)) return;
                     const emptySlotIndex = activePanes.indexOf(null);
-                    if (emptySlotIndex > -1) {
-                        activePanes[emptySlotIndex] = clickedPaneId;
-                    } else {
-                        // Replace the pane that wasn't just clicked
-                        const otherPaneIndex = activePanes.indexOf(panes[0].dataset.paneId) > -1 ? 1 : 0;
-                        activePanes[otherPaneIndex] = clickedPaneId;
-                    }
-
-                    // Sort to maintain left-to-right order of panes
+                    if (emptySlotIndex > -1) { activePanes[emptySlotIndex] = clickedPaneId; } 
+                    else { activePanes[1] = clickedPaneId; }
                     activePanes.sort((a, b) => {
                         const allTabs = Array.from(tabs).map(t => t.dataset.pane);
                         if (a === null) return 1; if (b === null) return -1;
                         return allTabs.indexOf(a) - allTabs.indexOf(b);
                     });
-
                     updateUI();
                 });
             });
 
-            // --- INITIALIZATION --- //
-
-            // The content for each pane is defined here, referencing the dynamic render functions
-            const paneContent = {
-                library: { title: 'Library', icon: '...', content: `<div class="pane-content"><p>Showing texts for G8U2...</p></div>` },
-                'writer-notebook': { title: "Writer's Notebook", icon: '...', content: `<div class="pane-content"></div>` },
-                'writing-preparation': { title: 'Writing Preparation', icon: '...', content: `<div class="pane-content"></div>` },
-                'driving-task': { 
-                    title: 'Driving Task', 
-                    icon: '...', 
-                    content: `<textarea id="driving-task-editor"><h1>Literary Analysis: The Causes and Consequences of Identity</h1><p>After reading ‘Marigolds’ by Eugenia W. Collier and analyzing narrative and informational texts on decision making, write a literary analysis in which you examine how pivotal moments in ‘Marigolds’ reveal the causes and consequences of Lizabeth’s decisions about her identity. Support your analysis with evidence from the text.</p></textarea>` 
-                }
-            };
-            
-            // Set the key demonstration state as the default
+            // Set default state
             activePanes = ['writer-notebook', 'driving-task'];
             updateUI();
         });
