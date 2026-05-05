@@ -123,7 +123,7 @@
 
         .filter-popup {
             position: absolute; top: 65px; right: 24px; z-index: 10;
-            width: 300px; background-color: #fff; border-radius: 12px;
+            width: 320px; background-color: #fff; border-radius: 12px;
             border: 1px solid var(--border-light);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 16px;
         }
@@ -133,11 +133,22 @@
             display: block; font-size: 14px; font-weight: 700;
             margin-bottom: 8px; color: var(--text-secondary-dark);
         }
-        .filter-group select {
-            width: 100%; padding: 8px 12px; border-radius: 8px;
-            border: 1px solid #ccc;
+        .filter-list {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; flex-wrap: wrap; gap: 8px;
         }
-        .filter-actions { display: flex; gap: 8px; margin-top: 16px; }
+        .filter-item {
+            padding: 6px 12px; border-radius: 20px; font-size: 13px;
+            font-weight: 500; background-color: var(--surface-bg);
+            border: 1px solid var(--border-light); color: var(--text-secondary-dark);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .filter-item:hover { border-color: #aab2c0; }
+        .filter-item.active {
+            background-color: var(--primary-color);
+            color: #fff; border-color: var(--primary-color);
+        }
+        .filter-actions { display: flex; gap: 8px; margin-top: 20px; border-top: 1px solid var(--border-light); padding-top: 16px; }
         .filter-actions button {
             flex: 1; padding: 8px; border-radius: 8px; border: 1px solid transparent;
             font-weight: 500; cursor: pointer;
@@ -155,11 +166,7 @@
         .card-header h3 { margin: 0; font-size: 16px; }
         .card-header .activity-ref { font-size: 14px; color: var(--text-secondary-dark); font-weight: 500; }
         .card-content { padding: 16px; }
-        /* This simulates the Learnetic/EdTool module */
-        .simulated-module {
-            background-color: var(--surface-bg); padding: 16px;
-            border-radius: 8px; border: 1px dashed #ccc;
-        }
+        .simulated-module { background-color: var(--surface-bg); padding: 16px; border-radius: 8px; border: 1px dashed #ccc; }
         .simulated-module h4 { margin-top: 0; font-size: 14px; color: var(--text-secondary-dark); }
         .simulated-module blockquote {
             margin: 0; padding-left: 12px; border-left: 3px solid var(--secondary-color);
@@ -182,11 +189,7 @@
         
         /* --- WRITING PREPARATION PANE --- */
         .prep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
-        .prep-card {
-            background: #fff; border: 1px solid var(--border-light);
-            border-radius: 12px; padding: 20px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
+        .prep-card { background: #fff; border: 1px solid var(--border-light); border-radius: 12px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .prep-card h3 { margin: 0 0 8px 0; font-size: 18px; }
         .prep-card p { font-size: 14px; color: var(--text-secondary-dark); margin: 0; }
         
@@ -265,7 +268,7 @@
             const tabs = document.querySelectorAll('.tab-btn');
             const panes = [ document.getElementById('pane-1'), document.getElementById('pane-2') ];
             let activePanes = [null, null];
-            let currentFilters = { text: 'all', category: 'all', artifact: 'all' };
+            let currentFilters = { text: [], category: [], artifact: [] };
 
             const paneContent = {
                 library: { title: 'Library', icon: '...', content: `<div class="pane-content"><p>Showing texts for G8U2...</p></div>` },
@@ -292,8 +295,7 @@
                 pane.innerHTML = headerContent + data.content;
 
                 if (paneId === 'writer-notebook') {
-                    renderNotebook(pane);
-                    // Attach event listener for the new filter button
+                    renderNotebookFeed(pane);
                     pane.querySelector('.notebook-filter-btn').addEventListener('click', (e) => {
                         toggleFilterPopup(pane, e.currentTarget);
                     });
@@ -313,18 +315,28 @@
 
                 popup = document.createElement('div');
                 popup.className = 'filter-popup';
+                
+                const buildFilterList = (type, items) => {
+                    let listHTML = `<li class="filter-item" data-type="${type}" data-id="all">All</li>`;
+                    items.forEach(item => {
+                        const isActive = currentFilters[type].includes(item.id);
+                        listHTML += `<li class="filter-item ${isActive ? 'active' : ''}" data-type="${type}" data-id="${item.id}">${item.title || item.name}</li>`;
+                    });
+                    return listHTML;
+                };
+
                 popup.innerHTML = `
                     <div class="filter-group">
-                        <label for="filter-text">Text Selection</label>
-                        <select id="filter-text"><option value="all">All Texts</option>${texts.map(t => `<option value="${t.id}" ${currentFilters.text === t.id ? 'selected' : ''}>${t.title}</option>`).join('')}</select>
+                        <label>Text Selection</label>
+                        <ul class="filter-list" data-filter-type="text">${buildFilterList('text', texts)}</ul>
                     </div>
                     <div class="filter-group">
-                        <label for="filter-category">Notebook Category</label>
-                        <select id="filter-category"><option value="all">All Categories</option>${notebookCategories.map(c => `<option value="${c.id}" ${currentFilters.category === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}</select>
+                        <label>Notebook Category</label>
+                        <ul class="filter-list" data-filter-type="category">${buildFilterList('category', notebookCategories)}</ul>
                     </div>
                     <div class="filter-group">
-                        <label for="filter-artifact">Cumulative Artifact</label>
-                        <select id="filter-artifact"><option value="all">All Artifacts</option>${cumulativeArtifacts.map(a => `<option value="${a.id}" ${currentFilters.artifact === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}</select>
+                        <label>Cumulative Artifact</label>
+                        <ul class="filter-list" data-filter-type="artifact">${buildFilterList('artifact', cumulativeArtifacts)}</ul>
                     </div>
                     <div class="filter-actions">
                         <button class="clear-btn">Clear Filters</button>
@@ -332,44 +344,68 @@
                     </div>`;
                 pane.appendChild(popup);
 
+                popup.addEventListener('click', (e) => {
+                    if (e.target.matches('.filter-item')) {
+                        const item = e.target;
+                        const type = item.dataset.type;
+                        const id = item.dataset.id;
+                        const list = item.closest('.filter-list');
+                        
+                        if (id === 'all') {
+                            const areAllActive = Array.from(list.children).every(child => child.classList.contains('active'));
+                            list.querySelectorAll('.filter-item').forEach(child => {
+                                areAllActive ? child.classList.remove('active') : child.classList.add('active');
+                            });
+                        } else {
+                            item.classList.toggle('active');
+                            const allButton = list.querySelector('[data-id="all"]');
+                            const areAllOthersActive = Array.from(list.querySelectorAll('.filter-item:not([data-id="all"])')).every(child => child.classList.contains('active'));
+                            allButton.classList.toggle('active', areAllOthersActive);
+                        }
+                    }
+                });
+
                 popup.querySelector('.apply-btn').addEventListener('click', () => {
-                    currentFilters.text = popup.querySelector('#filter-text').value;
-                    currentFilters.category = popup.querySelector('#filter-category').value;
-                    currentFilters.artifact = popup.querySelector('#filter-artifact').value;
-                    renderNotebook(pane);
+                    ['text', 'category', 'artifact'].forEach(type => {
+                        const activeItems = Array.from(popup.querySelectorAll(`[data-type="${type}"].active`));
+                        const allButtonActive = activeItems.some(item => item.dataset.id === 'all');
+                        if (allButtonActive || activeItems.length === 0) {
+                            currentFilters[type] = []; // Empty array means "all"
+                        } else {
+                            currentFilters[type] = activeItems.map(item => item.dataset.id);
+                        }
+                    });
+                    renderNotebookFeed(pane);
                     popup.classList.add('hidden');
                 });
 
                 popup.querySelector('.clear-btn').addEventListener('click', () => {
-                    currentFilters = { text: 'all', category: 'all', artifact: 'all' };
-                    popup.querySelectorAll('select').forEach(s => s.value = 'all');
-                    renderNotebook(pane);
-                    popup.classList.add('hidden');
+                    currentFilters = { text: [], category: [], artifact: [] };
+                    popup.querySelectorAll('.filter-item.active').forEach(item => item.classList.remove('active'));
                 });
                 
-                // Close popup when clicking outside
                 setTimeout(() => {
                     document.addEventListener('click', function closeOnClickOutside(e) {
                         if (!popup.contains(e.target) && e.target !== button) {
-                            popup.classList.add('hidden');
+                            popup.remove();
                             document.removeEventListener('click', closeOnClickOutside);
                         }
                     });
                 }, 0);
             }
 
-            function renderNotebook(pane) {
+            function renderNotebookFeed(pane) {
                 const feed = pane.querySelector('.notebook-feed');
                 if (!feed) return;
                 
-                let feedHTML = '';
                 const filteredEntries = notebookEntries.filter(entry => {
-                    const textMatch = (currentFilters.text === 'all' || entry.textId === currentFilters.text);
-                    const categoryMatch = (currentFilters.category === 'all' || entry.categoryId === currentFilters.category);
-                    const artifactMatch = (currentFilters.artifact === 'all' || entry.cumulativeArtifactId === currentFilters.artifact);
+                    const textMatch = currentFilters.text.length === 0 || currentFilters.text.includes(entry.textId);
+                    const categoryMatch = currentFilters.category.length === 0 || currentFilters.category.includes(entry.categoryId);
+                    const artifactMatch = currentFilters.artifact.length === 0 || currentFilters.artifact.includes(entry.cumulativeArtifactId);
                     return textMatch && categoryMatch && artifactMatch;
                 });
 
+                let feedHTML = '';
                 filteredEntries.forEach(entry => {
                     const category = notebookCategories.find(c => c.id === entry.categoryId);
                     const artifact = cumulativeArtifacts.find(a => a.id === entry.cumulativeArtifactId);
@@ -380,67 +416,4 @@
                             <div class="card-footer">
                                 <div class="metadata-section"><span class="metadata-label">Category:</span><span class="chip">${category ? category.name : 'N/A'}</span></div>
                                 <div class="card-actions"><button class="copy-btn">Copy to Draft</button><button class="add-to-planner-btn">Add to Planner</button></div>
-                                <details style="font-size: 11px; color: #666; margin-top: 10px; cursor: pointer;">
-                                    <summary>Authoring Metadata</summary>
-                                    <ul style="margin-top: 5px; padding-left: 20px;">
-                                        <li><strong>Source Activity:</strong> ${entry.sourceActivity}</li>
-                                        <li><strong>Module Type:</strong> ${entry.moduleType}</li>
-                                        <li><strong>Cumulative Artifact:</strong> ${artifact ? artifact.name : 'None'}</li>
-                                        <li><strong>Include in Writing Prep:</strong> ${entry.includeInWritingPrep ? 'Yes' : 'No'}</li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>`;
-                });
-                
-                feed.innerHTML = feedHTML;
-
-                feed.addEventListener('click', e => {
-                    if (e.target.matches('.copy-btn')) alert("SIMULATION: Content copied to your Driving Task draft.");
-                    else if (e.target.matches('.add-to-planner-btn')) alert("SIMULATION: This entry has been added to your Literary Analysis Planner.");
-                });
-            }
-
-            function renderWritingPrep(pane) {
-                const content = pane.querySelector('.pane-content');
-                let gridHTML = '<div class="prep-grid">';
-                cumulativeArtifacts.forEach(artifact => {
-                    gridHTML += `<div class="prep-card"><h3>${artifact.name}</h3><p>A persistent artifact built across multiple activities.</p></div>`;
-                });
-                gridHTML += '</div>';
-                content.innerHTML = gridHTML;
-            }
-
-            function updateUI() { 
-                renderPane(0, activePanes[0]); 
-                renderPane(1, activePanes[1]);
-                tabs.forEach(tab => { 
-                    const paneId = tab.dataset.pane; 
-                    if (activePanes.includes(paneId)) { tab.classList.add('active'); } 
-                    else { tab.classList.remove('active'); }
-                }); 
-            }
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', (e) => {
-                    const clickedPaneId = tab.dataset.pane;
-                    if (activePanes.includes(clickedPaneId)) return;
-                    const emptySlotIndex = activePanes.indexOf(null);
-                    if (emptySlotIndex > -1) { activePanes[emptySlotIndex] = clickedPaneId; } 
-                    else { activePanes[1] = clickedPaneId; }
-                    activePanes.sort((a, b) => {
-                        const allTabs = Array.from(tabs).map(t => t.dataset.pane);
-                        if (a === null) return 1; if (b === null) return -1;
-                        return allTabs.indexOf(a) - allTabs.indexOf(b);
-                    });
-                    updateUI();
-                });
-            });
-
-            // Set default state
-            activePanes = ['writer-notebook', 'driving-task'];
-            updateUI();
-        });
-    </script>
-</body>
-</html>
+                                <details sty
